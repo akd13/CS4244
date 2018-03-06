@@ -1,30 +1,48 @@
 import argparse
 import re
-import sys, copy
+import copy
 
-clauseSet = []
+clauses = []
 solved = {}
 
-def parse_input():
+def parse_input(): #open input file from command line
     parser = argparse.ArgumentParser()
     parser.add_argument('file')
     return parser.parse_args().file
 
-def add_clauses(filename,clauseSet):
+def add_clauses(filename):
     file = open(filename, "r")
     for line in file:
-        m = re.search('^\s*((-)*\d+\s*)*(0)(\\n)$', line)
+        m = re.search('^\s*((-)*\d+\s*)*(0)(\\n)$', line) #detect clause
         if m!=None:
-            clauseSet.append(map(int, m.group(0).split()))
+            raw_clause = m.group(0).split()
+            size =  len(raw_clause)
+            if (raw_clause[size-1]==0):
+                raw_clause.remove(size-1)
 
-def DPLL(set):
-    if (len(set) == 0):  # clause set empty
+            clause = [int(numeric_string) for numeric_string in raw_clause]
+            clauses.append(clause)
+    return clauses
+
+class Clause(object):
+
+    def __init__(self):
+        self.id = self.make_id()
+
+    @classmethod
+    def make_id(cls):
+        cls._num += 1
+        return cls._num
+
+
+def DPLL(clauseSet):
+    if (len(clauseSet) == 0):  # clause set empty
         return True
-    for clause in set:  # contains an empty clause
+    for clause in clauseSet:  # contains an empty clause
         if (len(clause) == 1):
             return False
     global solved
-    for clause in set:  # unit prop on unit clause
+    for clause in clauseSet:  # unit prop on unit clause
         index = 0
         if (len(clause) == 2):
             item = clause[0]
@@ -32,28 +50,28 @@ def DPLL(set):
                 solved[-1 * item] = 0
             else:
                 solved[item] = 1
-            set.pop(index)
+            clauseSet.pop(index)
             index = 0
-            while (index != len(set)):
+            while (index != len(clauseSet)):
                 marked = False
-                for lit in set[index]:
+                for lit in clauseSet[index]:
                     if lit == item:
                         marked = True
                         break
                     elif (lit == (-1 * item)):
-                        set[index].remove(lit)
+                        clauseSet[index].remove(lit)
                 if marked:
-                    set.pop(index)
+                    clauseSet.pop(index)
                     index = index - 1
                 index = index + 1
-            return DPLL(copy.deepcopy(set))
+            return DPLL(copy.deepcopy(clauseSet))
 
-    shortClause = set[0]
-    for clause in set:  # choose a variable by shortest remaining
+    shortClause = clauseSet[0]
+    for clause in clauseSet:  # choose a variable by shortest remaining
         if len(shortClause) > len(clause):
             shortClause = clause
     item = shortClause[0]
-    tempSet = copy.deepcopy(set)
+    tempSet = copy.deepcopy(clauseSet)
     tempSet.remove(shortClause)
 
     index = 0
@@ -80,7 +98,7 @@ def DPLL(set):
     else:
         solved = copy.deepcopy(tempSolve)
         item = (-1 * item)
-        tempSet = copy.deepcopy(set)
+        tempSet = copy.deepcopy(clauseSet)
         index = 0
         while (index != len(tempSet)):
             marked = False
@@ -100,11 +118,12 @@ def DPLL(set):
             solved[item] = 1
     return DPLL(tempSet)
 
-add_clauses(parse_input(),clauseSet)
-solver = DPLL(copy.deepcopy(clauseSet))
+clauses = add_clauses(parse_input())
+solver = DPLL(copy.deepcopy(clauses))
+
 if solver:
-    for set in solved:
-        print(set, solved[set])
+    for s in solved:
+        print(s, solved[s])
 else:
-    print "UNSATISFIABLE"
+    print("UNSATISFIABLE")
 
