@@ -1,6 +1,7 @@
 import argparse
 import re
 import copy
+from collections import OrderedDict
 
 clauses = []
 solved = {}
@@ -120,6 +121,7 @@ def DPLL(clauseSet):
 
 clauses = add_clauses(parse_input())
 solver = DPLL(copy.deepcopy(clauses))
+solved = OrderedDict(sorted(solved.items()))
 
 if solver:
     for s in solved:
