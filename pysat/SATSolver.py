@@ -28,12 +28,11 @@ def add_clauses(filename):
 
 def unit_propagation(clause, clause_set, literal_values, index_clause):
 
-
     pure_literal = clause[0]
-    if (pure_literal < 0): #if negative
+    if (pure_literal > 0): #if positive
+        literal_values[pure_literal] = 1
+    else: #if negative
         literal_values[-1 * pure_literal] = 0
-    else:
-        literal_values[pure_literal] = 1 #if positive
     clause_set.pop(index_clause) #remove clause containing the pure literal
 
     index = 0
@@ -43,15 +42,11 @@ def unit_propagation(clause, clause_set, literal_values, index_clause):
         for lit in clause_set[index]:
             if (lit == pure_literal):
                 is_solved = True
-                break
+                clause_set.pop(index) #remove the clause (which is now true by default due to pure-literal) from F
+                index -= 1
             elif (lit == (-1 * pure_literal)):
                 clause_set[index].remove(lit) #remove the pure-literal's negation from a clause
-
-        if (is_solved): #remove the clause (which is now true by default due to pure-literal) from F
-            clause_set.pop(index)
-            index-=1
-        index+=1
-
+        index += 1
 
 def DPLL(clause_set, literal_values):
 
@@ -70,7 +65,7 @@ def DPLL(clause_set, literal_values):
 
     shortest_clause = clause_set[0]
     for clause in clause_set:  # choose a variable by shortest remaining
-        if len(shortest_clause) > len(clause):
+        if (len(shortest_clause) > len(clause)):
             shortest_clause = clause
     first_element = shortest_clause[0]
     temp_clauseset = clause_set
@@ -80,24 +75,24 @@ def DPLL(clause_set, literal_values):
     while (index != len(temp_clauseset)):
         is_solved = False
         for lit in temp_clauseset[index]:
-            if lit == first_element:
+            if (lit == first_element):
                 is_solved = True
                 break
             elif (lit == (-1 * first_element)):
                 temp_clauseset[index].remove(lit)
-        if is_solved:
+        if (is_solved):
             temp_clauseset.pop(index)
             index = index - 1
         index = index + 1
     temp_literal_values = literal_values
-    done = DPLL(temp_clauseset, literal_values)
+    solve_recursive = DPLL(temp_clauseset, literal_values)
 
-    if done:
-        if first_element < 0:
+    if (solve_recursive):
+        if (first_element) < 0:
             literal_values[-1 * first_element] = 0
         else:
             literal_values[first_element] = 1
-        return done
+        return solve_recursive
     else:
         literal_values = temp_literal_values
         first_element = (-1 * first_element)
@@ -106,16 +101,16 @@ def DPLL(clause_set, literal_values):
         while (index != len(temp_clauseset)):
             is_solved = False
             for lit in temp_clauseset[index]:
-                if lit == first_element:
+                if (lit == first_element):
                     is_solved = True
                     break
                 elif (lit == (-1 * first_element)):
                     temp_clauseset[index].remove(lit)
-            if is_solved:
+            if (is_solved):
                 temp_clauseset.pop(index)
                 index = index - 1
             index = index + 1
-        if first_element < 0:
+        if (first_element) < 0:
             literal_values[-1 * first_element] = 0
         else:
             literal_values[first_element] = 1
@@ -127,11 +122,9 @@ clauses = add_clauses(parse_input())
 can_solve = DPLL(clauses, literal_values)
 literal_values = OrderedDict(sorted(literal_values.items()))
 
-if can_solve:
+if (can_solve):
     for s in literal_values:
         print(s, literal_values[s])
 else:
-    for s in literal_values:
-        print(s, literal_values[s])
-    print("UNSATISFIABLE")
+    print("UNSATISFIABLE!")
 
