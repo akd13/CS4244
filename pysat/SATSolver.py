@@ -9,22 +9,36 @@ def parse_input(): #open input file from command line
     return parser.parse_args().file
 
 def add_clauses(filename):
+    max_literal = 0
     file = open(filename, "r")
     for line in file:
-        p = re.search('^\s*(p|c).*(\n)*$',line)
-        m = re.search('^\s*((-)*\d+\s*)*(0)(\\n)*$', line) #detect clause
-        if p == None and m == None:
+        comment = re.search('^\s*(p|c).*(\n)*$',line)
+        header = re.search('^\s*(p)\s+(cnf)\s+(\d+)\s+(\d+)(\n)*$',line)
+        clause_input_cnf = re.search('^\s*((-)*\d+\s*)*(0)(\\n)*$', line) #detect clause
+
+        if(header!=None):
+            max_literal = int(line.split()[2])
+
+        if comment == None and clause_input_cnf == None:
             print(line," is invalid!")
             break;
-        elif m != None:
-            raw_clause = m.group(0).split()
+
+        elif clause_input_cnf != None:
+            raw_clause = clause_input_cnf.group(0).split()
             size =  len(raw_clause)
             if (raw_clause[size-1]=='0'):
                 raw_clause.pop()
 
             clause = [int(numeric_string) for numeric_string in raw_clause]
             clauses.append(clause)
-    return clauses
+    return clauses,max_literal
+
+def get_shortest_clause(clause_set):
+    shortest_clause = clause_set[0]
+    for clause in clause_set:  # choose a variable by shortest remaining
+        if (len(shortest_clause) > len(clause)):
+            shortest_clause = clause
+    return shortest_clause
 
 def unit_propagation(clause, clause_set, literal_values, index_clause):
 
@@ -48,6 +62,47 @@ def unit_propagation(clause, clause_set, literal_values, index_clause):
                 clause_set[index].remove(lit) #remove the pure-literal's negation from a clause
         index += 1
 
+def backtrack_firstbranch(first_element, literal_values, temp_clauseset):
+    index = 0
+    while (index != len(temp_clauseset)):
+        does_literal_appear = False
+        for lit in temp_clauseset[index]:
+            if (lit == first_element):
+                does_literal_appear = True
+                break
+            elif (lit == (-1 * first_element)):
+                temp_clauseset[index].remove(lit) #remove negative literal from clause
+        if (does_literal_appear):
+            temp_clauseset.pop(index) #remove the clauses where literal appears as this clause is now true by default
+            index = index - 1
+        index = index + 1
+
+    solve_recursive = DPLL(temp_clauseset, literal_values)
+
+    return solve_recursive
+
+def backtrack_secondbranch(clause_set):
+    first_element = -1 * first_element
+    temp_clauseset = clause_set
+    index = 0
+    while (index != len(temp_clauseset)):
+        does_literal_appear = False
+        for lit in temp_clauseset[index]:
+            if (lit == first_element):
+                does_literal_appear = True
+                break
+            elif (lit == (-1 * first_element)):
+                temp_clauseset[index].remove(lit)
+        if (does_literal_appear):
+            temp_clauseset.pop(index)
+            index = index - 1
+        index = index + 1
+    if (first_element) < 0:
+        literal_values[-1 * first_element] = 0
+    else:
+        literal_values[first_element] = 1
+    return temp_clauseset
+
 def DPLL(clause_set, literal_values):
 
     if (not(clause_set)): # set of clauses are empty
@@ -63,68 +118,46 @@ def DPLL(clause_set, literal_values):
             unit_propagation(clause, clause_set, literal_values, index)
             return DPLL(clause_set, literal_values)
 
-    shortest_clause = clause_set[0]
-    for clause in clause_set:  # choose a variable by shortest remaining
-        if (len(shortest_clause) > len(clause)):
-            shortest_clause = clause
+    shortest_clause = get_shortest_clause(clause_set)
     first_element = shortest_clause[0]
     temp_clauseset = clause_set
     temp_clauseset.remove(shortest_clause)
 
-    index = 0
-    while (index != len(temp_clauseset)):
-        is_solved = False
-        for lit in temp_clauseset[index]:
-            if (lit == first_element):
-                is_solved = True
-                break
-            elif (lit == (-1 * first_element)):
-                temp_clauseset[index].remove(lit)
-        if (is_solved):
-            temp_clauseset.pop(index)
-            index = index - 1
-        index = index + 1
-    temp_literal_values = literal_values
-    solve_recursive = DPLL(temp_clauseset, literal_values)
+    #assign first literal from shortest clause a value and check satisfiability
+    first_branch = backtrack_firstbranch(first_element, literal_values, temp_clauseset)
 
-    if (solve_recursive):
+    if (first_branch == True):
         if (first_element) < 0:
-            literal_values[-1 * first_element] = 0
+            literal_values[-1 * first_element] = 0 #assign it negative value
         else:
-            literal_values[first_element] = 1
-        return solve_recursive
+            literal_values[first_element] = 1 #assign it positive value
+        return first_branch #satisfiable woohoo so stop here
+
     else:
-        literal_values = temp_literal_values
-        first_element = (-1 * first_element)
-        temp_clauseset = copy.deepcopy(clause_set)
-        index = 0
-        while (index != len(temp_clauseset)):
-            is_solved = False
-            for lit in temp_clauseset[index]:
-                if (lit == first_element):
-                    is_solved = True
-                    break
-                elif (lit == (-1 * first_element)):
-                    temp_clauseset[index].remove(lit)
-            if (is_solved):
-                temp_clauseset.pop(index)
-                index = index - 1
-            index = index + 1
-        if (first_element) < 0:
-            literal_values[-1 * first_element] = 0
-        else:
-            literal_values[first_element] = 1
-    return DPLL(temp_clauseset)
 
-clauses = []
-literal_values = {}
-clauses = add_clauses(parse_input())
+        temp_clauseset = backtrack_secondbranch(clause_set)
+    return DPLL(temp_clauseset) #check second branch's satisfiability
+
+def assign_remaining_literal(literal_values):
+    for i in range(max_value):
+        if (i + 1) not in literal_values:
+            literal_values[i + 1] = '0 or 1'
+    literal_values = OrderedDict(sorted(literal_values.items()))
+    return literal_values
+
+
+clauses = list()
+literal_values = dict()
+
+clauses,max_value = add_clauses(parse_input())
+
 can_solve = DPLL(clauses, literal_values)
-literal_values = OrderedDict(sorted(literal_values.items()))
+
+literal_values = assign_remaining_literal(literal_values)
 
 if (can_solve):
     for s in literal_values:
-        print(s, literal_values[s])
+        print(s,":",literal_values[s])
 else:
     print("UNSATISFIABLE!")
 
