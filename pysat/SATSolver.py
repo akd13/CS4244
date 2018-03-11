@@ -1,3 +1,20 @@
+#Source: http://www.dis.uniroma1.it/~liberato/ar/dpll/dpll.html, https://en.wikipedia.org/wiki/DPLL_algorithm
+
+# Algorithm DPLL
+#   Input: A set of clauses Φ.
+#   Output: A Truth Value.
+# function DPLL(Φ)
+#    if Φ is a consistent set of literals
+#        then return true;
+#    if Φ contains an empty clause
+#        then return false;
+#    for every unit clause l in Φ
+#       Φ ← unit-propagate(l, Φ);
+#    for every literal l that occurs pure in Φ
+#       Φ ← pure-literal-assign(l, Φ);
+#    l ← choose-literal(Φ);
+#    return DPLL(Φ ∧ l) or DPLL(Φ ∧ not(l));
+
 import argparse
 import re
 import copy
@@ -81,7 +98,7 @@ def backtrack_firstbranch(first_element, literal_values, temp_clauseset):
 
     return solve_recursive
 
-def backtrack_secondbranch(clause_set):
+def backtrack_secondbranch(clause_set,first_element):
     first_element = -1 * first_element
     temp_clauseset = clause_set
     index = 0
@@ -135,7 +152,7 @@ def DPLL(clause_set, literal_values):
 
     else:
 
-        temp_clauseset = backtrack_secondbranch(clause_set)
+        temp_clauseset = backtrack_secondbranch(clause_set,first_element)
     return DPLL(temp_clauseset) #check second branch's satisfiability
 
 def assign_remaining_literal(literal_values):
