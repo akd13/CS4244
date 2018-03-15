@@ -58,12 +58,12 @@ def add_clauses(filename):
 ## Helper Methods ##
 ####################
 
-def get_shortest_clause(clause_set):
+def get_shortest_clause(cnf):
     """
     Get the shortest clause from the clause set
     """
-    shortest_clause = clause_set[0]
-    for clause in clause_set:
+    shortest_clause = cnf[0]
+    for clause in cnf:
         if (len(shortest_clause) > len(clause)):
             shortest_clause = clause
     return shortest_clause
@@ -83,7 +83,7 @@ def assign_remaining_literal(literal_values):
 ##################
 
 
-def unit_propagation(clause, clause_set, literal_values):
+def unit_propagation(clause, cnf, literal_values):
     """
     Assign unit clause truth value, and for each clause in clause set, do
     1. remove the clauses already satisfied
@@ -96,25 +96,25 @@ def unit_propagation(clause, clause_set, literal_values):
     else:                  #if negative clause
         literal_values[-1 * pure_literal] = 0
 
-    clause_set.remove(clause)  #remove the clause containing the pure literal
+    cnf.remove(clause)  #remove the clause containing the pure literal
 
     i = 0
-    while (i != len(clause_set)):
-        for lit in clause_set[i]:
+    while (i != len(cnf)):
+        for lit in cnf[i]:
             if (lit == pure_literal):
-                clause_set.pop(i) #remove the entire clause (which is now true by default due to pure-literal) from F
+                cnf.pop(i) #remove the entire clause (which is now true by default due to pure-literal) from F
                 i-= 1
             elif (lit == (-1 * pure_literal)):
-                clause_set[i].remove(lit) #remove the assigned literal from a clause
+                cnf[i].remove(lit) #remove the assigned literal from a clause
         i+=1
 
-                # for clause in clause_set:
+                # for clause in cnf:
                 #     if (not(clause)):  # if there is an empty clause
                 #         #add_conflict_clause(literal_values,original_clauses)
-                #         #backtrack_decision_level(clause_set, decision_level, conflict_clause)
+                #         #backtrack_decision_level(cnf, decision_level, conflict_clause)
 
 
-def backtrack_decision_level(clause_set, decision_level, conflict_clause):
+def backtrack_decision_level(cnf, decision_level, conflict_clause):
     """
     TODO: Perform back-tracking for CDCL
     """
@@ -123,7 +123,7 @@ def add_conflict_clause(literal_values,original_clauses):
     """
     Add conflict clause to the original clause set
     """
-    clause_set = original_clauses
+    cnf = original_clauses
     conflict_clause = []
     #decision_level = literal_values.get_decision_level()
     #conflict_values = literal_values.track_cut
@@ -133,18 +133,18 @@ def add_conflict_clause(literal_values,original_clauses):
             conflict_clause.append(-1*s)
         elif(literal_values[s]==0):
             conflict_clause.append(s)
-    clause_set.append(conflict_clause)
+    cnf.append(conflict_clause)
 
     #return conflict_clause
-    return DPLL(clause_set,literal_values)
+    return DPLL(cnf,literal_values)
 
-def backtrack_firstbranch(clause_set, literal_values, literal):
+def backtrack_firstbranch(cnf, literal_values, literal):
     """
     Assign literal a value of 1
     """
     #print("first branch")
 
-    temp_clauseset = clause_set
+    temp_clauseset = cnf
     i = 0
     while (i != len(temp_clauseset)):
         for current_literal in temp_clauseset[i]:
@@ -159,14 +159,14 @@ def backtrack_firstbranch(clause_set, literal_values, literal):
 
     return solve_recursive
 
-def backtrack_secondbranch(clause_set, literal_values, literal):
+def backtrack_secondbranch(cnf, literal_values, literal):
     """
     Assign literal a value of 0
     """
     #print("Second branch")
 
     literal = -1 * literal
-    temp_clauseset = clause_set
+    temp_clauseset = cnf
 
     i = 0
     while (i != len(temp_clauseset)):
@@ -188,26 +188,26 @@ def backtrack_secondbranch(clause_set, literal_values, literal):
 
     return solve_recursive
 
-def DPLL(clause_set, literal_values):
+def DPLL(cnf, literal_values):
 
-    if (not(clause_set)): # set of clauses is empty, everything is satisfied
+    if (not(cnf)): # set of clauses is empty, everything is satisfied
         return True
 
-    for clause in clause_set:
+    for clause in cnf:
         if (not(clause)):  # if there is an empty clause, unsat
             return False
 
-    for clause in clause_set:  #perform unit propagation
+    for clause in cnf:  #perform unit propagation
         if (len(clause) == 1):
-            unit_propagation(clause, clause_set, literal_values)
-            return DPLL(clause_set, literal_values)
+            unit_propagation(clause, cnf, literal_values)
+            return DPLL(cnf, literal_values)
 
-    shortest_clause = get_shortest_clause(clause_set)
+    shortest_clause = get_shortest_clause(cnf)
     first_element = shortest_clause[0]
 
     #assign first literal from shortest clause and check satisfiability
 
-    first_branch = backtrack_firstbranch(clause_set, literal_values, first_element)
+    first_branch = backtrack_firstbranch(cnf, literal_values, first_element)
 
     if (first_branch == True): #no need to solve second branch :)
         if (first_element < 0):
@@ -217,9 +217,9 @@ def DPLL(clause_set, literal_values):
         return True
 
     else: #check second branch's satisfiability
-        clause_set = backtrack_secondbranch(clause_set,literal_values,first_element)
+        cnf = backtrack_secondbranch(cnf,literal_values,first_element)
 
-    return DPLL(clause_set)
+    return DPLL(cnf)
 
 
 clauses = list()
