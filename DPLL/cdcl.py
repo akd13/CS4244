@@ -17,53 +17,54 @@
 import argparse
 import re
 
+
 def parse_input():
-    """
+	"""
     Get the input file with clauses in DIMACS format.
     """
-    parser = argparse.ArgumentParser()
-    parser.add_argument('file')
-    return parser.parse_args().file
+	parser = argparse.ArgumentParser()
+	parser.add_argument('file')
+	return parser.parse_args().file
+
 
 def add_clauses(filename):
-    """
+	"""
     Check validity of each clause and add to clause set
     """
-    num_variables = 0
-    file = open(filename, "r")
-    for line in file:
-        comment = re.search('^\s*(p|c).*(\n)*$',line)
-        header = re.search('^\s*(p)\s+(cnf)\s+(\d+)\s+(\d+)(\n)*$',line)
-        clause_input_cnf = re.search('^\s*((-)*\d+\s*)*(0)(\\n)*$', line) #detect clause
+	num_variables = 0
+	file = open(filename, "r")
+	for line in file:
+		comment = re.search('^\s*(p|c).*(\n)*$', line)
+		header = re.search('^\s*(p)\s+(cnf)\s+(\d+)\s+(\d+)(\n)*$', line)
+		clause_input_cnf = re.search('^\s*((-)*\d+\s*)*(0)(\\n)*$', line)  # detect clause
 
-        if(header!=None):
-            num_variables = int(line.split()[2])
+		if header is not None:
+			num_variables = int(line.split()[2])
 
-        if comment == None and clause_input_cnf == None:
-            print(line," is invalid!")
-            break;
+		if comment is None and clause_input_cnf is None:
+			print(line, " is invalid!")
+			break
 
-        elif clause_input_cnf != None:
-            raw_clause = clause_input_cnf.group(0).split()
-            raw_clause.pop()
-            clause = [int(numeric_string) for numeric_string in raw_clause]
-            cnf.append(clause)
-    return cnf, num_variables
-
-def get_clauses_of_literal(cnf,num_variables):
-
-    literal_clause = [[] for _ in range(num_variables+1)]
-
-    for clause in cnf:
-        for i in clause:
-            if(i>0):
-                literal_clause[i].append(clause)
-            else:
-                literal_clause[-i].append(clause)
-
-    return literal_clause
+		elif clause_input_cnf is not None:
+			raw_clause = clause_input_cnf.group(0).split()
+			raw_clause.pop()
+			clause = [int(numeric_string) for numeric_string in raw_clause]
+			cnf.append(clause)
+	return cnf, num_variables
 
 
-cnf = list()
+def get_clauses_of_literal(input_cnf, num_variables):
+	literal_clause = [[] for _ in range(num_variables + 1)]
+
+	for clause in input_cnf:
+		for i in clause:
+			if i > 0:
+				literal_clause[i].append(clause)
+			else:
+				literal_clause[-i].append(clause)
+
+	return literal_clause
+
+
 cnf, max_value = add_clauses(parse_input())
 literals = get_clauses_of_literal(cnf, max_value)
