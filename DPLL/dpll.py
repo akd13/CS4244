@@ -217,6 +217,3 @@ if (can_solve):
     print("Total number of branches are", num_branches)
 else:
     print("UNSATISFIABLE!")
-
-for i in range(254):
-    print('a')
