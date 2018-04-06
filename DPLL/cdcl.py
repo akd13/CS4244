@@ -31,9 +31,11 @@ def add_clauses(filename):
     """
     Check validity of each clause and add to clause set
     """
-    num_variables = 0
     global cnf
+    global set_literals
+
     cnf = []
+    set_literals = set()
     file = open(filename, "r")
     for line in file:
         comment = re.search('^\s*(p|c).*(\n)*$', line)
@@ -51,7 +53,10 @@ def add_clauses(filename):
             raw_clause = clause_input_cnf.group(0).split()
             raw_clause.pop()
             clause = [int(numeric_string) for numeric_string in raw_clause]
+            for i in clause:
+                set_literals.add(i)
             cnf.append(clause)
+
     return cnf, num_variables
 
 
@@ -78,3 +83,4 @@ literals = get_clauses_of_literal(cnf, max_value)
 for i in range(1,max_value+1):
     print(i,":",literals[i])
 
+print(sorted(set_literals))
