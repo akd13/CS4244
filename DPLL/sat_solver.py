@@ -1,10 +1,12 @@
 #!/usr/bin/python -OO
+
 """
 Python Sat Solver
 To use simply, $ {this} {cnf file}
 or $ python -OO {cnf file}
 If possible, you should use pypy.
 """
+
 import logging
 import random
 import argparse
@@ -21,6 +23,7 @@ class Solver(object):
     Solver object
     """
     def __init__(self):
+
         self.litlist = LitList()
         self.clause_list = []
         self.learnt_list = []
