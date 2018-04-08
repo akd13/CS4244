@@ -235,7 +235,7 @@ class SATSolverCDCL:
 			print("SAT")
 			for i, lit in enumerate(self.literals):
 				if lit != -1:
-					print(lit,":",pow(-1, (lit + 1) * i + 1))
+					print(i+1,":",pow(-1, (lit + 1) * i + 1))
 				else:
 					print(i + 1)
 
