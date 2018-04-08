@@ -1,14 +1,65 @@
 import random
+import argparse
+import re
 from itertools import filterfalse
 
 # Enum of exit states
 RetVal = {'satisfied': 0, 'unsatisfied': 1, 'unresolved': 2}
+# CNF clauses in clause object form
+clause_list = []
 
+# CNF clauses in list form
+cnf = []
+
+# Set of unique literals in CNF
+set_literals = set()
+
+# Literal assignment based on decision levels
+lit_assignments = {}
+
+def parse_input():
+	"""
+	Get the input file with clauses in DIMACS format.
+	"""
+	parser = argparse.ArgumentParser()
+	parser.add_argument('file')
+	return parser.parse_args().file
+
+
+def add_clauses(filename):
+	"""
+	Check validity of each clause and add to clause set
+	"""
+	file = open(filename, "r")
+	num_variables = 0
+
+	for line in file:
+		comment = re.search('^\s*(p|c).*(\n)*$', line)
+		header = re.search('^\s*(p)\s+(cnf)\s+(\d+)\s+(\d+)(\n)*$', line)
+		clause_input_cnf = re.search('^\s*((-)*\d+\s*)*(0)(\\n)*$', line)  # detect clause
+
+		if header is not None:
+			num_variables = int(line.split()[2])
+
+		if comment is None and clause_input_cnf is None:
+			print(line, " is invalid!")
+			break
+
+		elif clause_input_cnf is not None:
+			raw_clause = clause_input_cnf.group(0).split()
+			raw_clause.pop()
+			clause = [int(numeric_string) for numeric_string in raw_clause]
+			for lit in clause:
+				set_literals.add(abs(lit))
+			cnf.append(clause)
+	solver = SATSolverCDCL()
+	solver.initialize(cnf,num_variables)
+	return solver
 
 class SATSolverCDCL:
 	def __init__(self):
 		self.literals = []
-		self.literal_list_per_clause = [[]]
+		self.literal_list_per_clause = []
 		self.literal_frequency = []
 		self.literal_polarity = []
 		self.original_literal_frequency = []
@@ -177,25 +228,50 @@ class SATSolverCDCL:
 	def all_variable_assigned(self):
 		return self.literal_count == self.assigned_literal_count
 
+
 	def show_result(self, result_status):
 		print("Displaying result of solver")
 		if result_status == RetVal['satisfied']:
 			print("SAT")
 			for i, lit in enumerate(self.literals):
 				if lit != -1:
-					print(pow(-1, (lit + 1) * i + 1))
+					print(lit,":",pow(-1, (lit + 1) * i + 1))
 				else:
 					print(i + 1)
 
 		else:
 			print("UNSAT")
 
-	def initialize(self):
+	def initialize(self,cnf,num_variables):
 		"""
 		To Initialize the solver
 		:return: void
 		"""
-		# TODO
+
+		for clause in cnf:
+			self.literal_list_per_clause.append(clause)
+			if(not(clause)):
+				self.already_unsatisfied = True
+
+		for i in range(num_variables):
+			self.literals.append(i+1)
+			self.literal_decision_level.append(-1)
+			self.literal_antecedent.append(-1)
+			self.literal_frequency.append(0)
+			self.literal_polarity.append(0)
+
+		for clause in cnf:
+			for literal in clause:
+				if(literal > 0):
+					self.literal_frequency[literal-1]+=1
+					self.literal_polarity[literal-1]+=1
+				else:
+					self.literal_frequency[-literal-1]+=1
+					self.literal_polarity[-literal-1]-=1
+
+		self.original_literal_frequency = self.literal_frequency
+		self.literal_count = num_variables
+		self.clause_count = len(cnf)
 
 	def CDCL(self):
 		"""
@@ -213,7 +289,7 @@ class SATSolverCDCL:
 		while not self.all_variable_assigned():
 			picked_variable =self.pick_branching_variable()
 			decision_level += 1
-			self.assigned_literal(picked_variable, decision_level, -1)
+			self.assign_literal(picked_variable, decision_level, -1)
 
 			while True:
 				unit_propagate_result = self.unit_propagate(decision_level)
@@ -232,3 +308,6 @@ class SATSolverCDCL:
 		"""
 		result_status = self.CDCL()
 		self.show_result(result_status)
+
+solver = add_clauses(parse_input())
+solver.solve()
