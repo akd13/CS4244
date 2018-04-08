@@ -18,20 +18,20 @@ import argparse
 import re
 from conflict_graph.objects import Clause, Node, Graph
 
-# # CNF clauses in clause object form
-# clause_list = []
-#
-# # CNF clauses in list form
-# cnf = []
-#
-# # Set of unique literals in CNF
-# set_literals = set()
-#
-# # Literal Assignments
-#
-#
-# # Literal assignment based on decision levels
-# lit_assignments = {}
+# CNF clauses in clause object form
+clause_list = []
+
+# CNF clauses in list form
+cnf = []
+
+# Set of unique literals in CNF
+set_literals = set()
+
+# Literal Assignments
+
+
+# Literal assignment based on decision levels
+lit_assignments = {}
 
 
 def parse_input():
@@ -49,6 +49,7 @@ def add_clauses(filename):
 	"""
 	file = open(filename, "r")
 	id_count = 0
+	num_variables = 0
 	for line in file:
 		comment = re.search('^\s*(p|c).*(\n)*$', line)
 		header = re.search('^\s*(p)\s+(cnf)\s+(\d+)\s+(\d+)(\n)*$', line)
@@ -101,7 +102,11 @@ class Solver(object):
 		"""
 		return self.sat_status
 
-	def conflict_analysis_backtrack(self):
+	def resolve(self):
+		"""
+		TODO: Resolution of clauses
+		"""
+	def conflict_analysis_backtrack(self,decision_level):
 		"""
 		TODO: Get conflict clause and backtrack to decision level
 		"""
@@ -144,15 +149,15 @@ class Solver(object):
 			unit_prop_variable = self.pick_branching()
 			dl+=1
 
-			self.assign_literal(self,unit_prop_variable,dl,-1)
+			self.assign_literal(unit_prop_variable,dl,-1)
 
 			while(True):
-				unit_prop_sat_result =  self.unit_propagate(self,unit_prop_variable)
+				unit_prop_sat_result =  self.unit_propagate(unit_prop_variable)
 				if(unit_prop_variable == False):
 					if(dl==0):
 						self.sat_status = False
 						return False #UNSAT
-					dl =  self.conflict_analysis_backtrack(self,dl)
+					dl =  self.conflict_analysis_backtrack(dl)
 
 				else:
 					break
