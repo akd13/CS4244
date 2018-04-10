@@ -2,6 +2,7 @@ import random
 import argparse
 import re
 from itertools import filterfalse
+import time
 
 # Enum of exit states
 RetVal = {'satisfied': 0, 'unsatisfied': 1, 'unresolved': 2}
@@ -326,4 +327,8 @@ class SATSolverCDCL:
 		self.show_result(result_status)
 
 solver = add_clauses(parse_input())
+start = time.clock()
 solver.solve()
+end = time.clock()
+
+print("Time taken is", end-start)
