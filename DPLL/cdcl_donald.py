@@ -195,36 +195,40 @@ class SATSolverCDCL:
 
 	def pick_branching_variable(self):
 
-		random_value = random.randint(1, 10)
-		too_many_attempts = False
-		attempt_counter = 0
+		for i in range(len(self.literals)):
+			if(self.literals[i]==-1):
+				return (i+1)
 
-		while True:
-			if random_value > 4 or self.assigned_literal_count < self.literal_count or too_many_attempts:
-				self.pick_counter += 1
-				if self.pick_counter == 20 * self.literal_count:
-					for i in range(len(self.literals)):
-						self.original_literal_frequency[i] /= 2
-						if self.literal_frequency[i] != -1:
-							self.literal_frequency[i] /= 2
-					self.pick_counter = 0
-
-				variable = self.literal_frequency.index(max(self.literal_frequency))
-				if self.literal_polarity[variable] >= 0:
-					return variable + 1
-				return -variable - 1
-			else:
-				while attempt_counter < 10 * self.literal_count:
-					variable = random.randint(0, self.literal_count - 1)
-					if self.literal_frequency[variable] != -1:
-						if self.literal_polarity[variable] >= 0:
-							return variable + 1
-						return -variable - 1
-					attempt_counter += 1
-				too_many_attempts = True
-
-			if too_many_attempts is False:
-				break
+		# random_value = random.randint(1, 10)
+		# too_many_attempts = False
+		# attempt_counter = 0
+		#
+		# while True:
+		# 	if random_value > 4 or self.assigned_literal_count < self.literal_count or too_many_attempts:
+		# 		self.pick_counter += 1
+		# 		if self.pick_counter == 20 * self.literal_count:
+		# 			for i in range(len(self.literals)):
+		# 				self.original_literal_frequency[i] /= 2
+		# 				if self.literal_frequency[i] != -1:
+		# 					self.literal_frequency[i] /= 2
+		# 			self.pick_counter = 0
+		#
+		# 		variable = self.literal_frequency.index(max(self.literal_frequency))
+		# 		if self.literal_polarity[variable] >= 0:
+		# 			return variable + 1
+		# 		return -variable - 1
+		# 	else:
+		# 		while attempt_counter < 10 * self.literal_count:
+		# 			variable = random.randint(0, self.literal_count - 1)
+		# 			if self.literal_frequency[variable] != -1:
+		# 				if self.literal_polarity[variable] >= 0:
+		# 					return variable + 1
+		# 				return -variable - 1
+		# 			attempt_counter += 1
+		# 		too_many_attempts = True
+		#
+		# 	if too_many_attempts is False:
+		# 		break
 
 	def all_variable_assigned(self):
 		return self.literal_count == self.assigned_literal_count
@@ -235,7 +239,7 @@ class SATSolverCDCL:
 			print("Satisfying clauses",cnf)
 			for i in range(len(self.literals)):
 				if(self.literals[i]==-1):
-					print(i+1,"0 or 1")
+					print(i+1,"can be 0 or 1")
 				elif(self.literals[i]==0):
 					print((i+1)*-1)
 				else:
