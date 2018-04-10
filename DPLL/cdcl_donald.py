@@ -252,6 +252,10 @@ class SATSolverCDCL:
 			self.literal_list_per_clause.append(clause)
 			if(not(clause)):
 				self.already_unsatisfied = True
+			clause_negated = [-l for l in clause]
+			if(clause_negated in cnf):
+				self.already_unsatisfied = True
+
 
 		for i in range(num_variables):
 			self.literals.append(-1)
