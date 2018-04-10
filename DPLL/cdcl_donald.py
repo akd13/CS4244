@@ -17,6 +17,7 @@ set_literals = set()
 # Literal assignment based on decision levels
 lit_assignments = {}
 
+
 def parse_input():
 	"""
 	Get the input file with clauses in DIMACS format.
@@ -24,7 +25,6 @@ def parse_input():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('file')
 	return parser.parse_args().file
-
 
 def add_clauses(filename):
 	"""
@@ -53,8 +53,9 @@ def add_clauses(filename):
 				set_literals.add(abs(lit))
 			cnf.append(clause)
 	solver = SATSolverCDCL()
-	solver.initialize(cnf,num_variables)
+	solver.initialize(cnf, num_variables)
 	return solver
+
 
 class SATSolverCDCL:
 	def __init__(self):
@@ -80,12 +81,15 @@ class SATSolverCDCL:
 		satisfied_flag = False
 		last_unset_literal = -1
 
-		do_while = True
-		while do_while:
+		while True:
+			print("UP", unset_count)
 			unit_clause_found = False
 			for i, lit_list in enumerate(self.literal_list_per_clause):
+				if unit_clause_found is True:
+					break
 				false_count = 0
 				unset_count = 0
+				satisfied_flag = False
 
 				for j, lit in enumerate(lit_list):
 					literal_index = self.literal_to_variable_index(lit)
@@ -110,7 +114,7 @@ class SATSolverCDCL:
 					return RetVal['unsatisfied']
 
 			if unit_clause_found is False:
-				do_while = False
+				break
 		self.kappa_antecedent = -1
 		return RetVal['unresolved']
 
@@ -131,14 +135,12 @@ class SATSolverCDCL:
 		self.assigned_literal_count -= 1
 
 	def literal_to_variable_index(self, variable):
-		print("Lit to Var")
 		if variable > 0:
 			return variable - 1
 		else:
 			return -variable - 1
 
 	def conflict_analysis_and_backtrack(self, decision_level):
-		print("perform conflict analysis and backtrack")
 		learnt_clause = self.literal_list_per_clause[self.kappa_antecedent]
 		conflict_decision_level = decision_level
 		this_level_count = 0
@@ -147,6 +149,7 @@ class SATSolverCDCL:
 
 		# TODO: Current implementation is not do while loop
 		while True:
+			print("CAB", this_level_count)
 			this_level_count = 0
 			for clause in learnt_clause:
 				literal = self.literal_to_variable_index(clause)
@@ -188,17 +191,15 @@ class SATSolverCDCL:
 	def resolve(self, input_clause, literal):
 		second_input = self.literal_list_per_clause[self.literal_antecedent[literal]]
 		input_clause += second_input
-		input_clause[:] = filterfalse(lambda x: x == literal + 1 or x == -literal - 1)
+		input_clause[:] = filterfalse(lambda x: x == literal + 1 or x == -literal - 1, input_clause)
 		return list(set(input_clause))
 
 	def pick_branching_variable(self):
-		print("Get next free assignment")
 		random_value = random.randint(1, 10)
 		too_many_attempts = False
 		attempt_counter = 0
-		do_while = True
 
-		while do_while:
+		while True:
 			if random_value > 4 or self.assigned_literal_count < self.literal_count or too_many_attempts:
 				self.pick_counter += 1
 				if self.pick_counter == 20 * self.literal_count:
@@ -223,26 +224,25 @@ class SATSolverCDCL:
 				too_many_attempts = True
 
 			if too_many_attempts is False:
-				do_while = False
+				break
 
 	def all_variable_assigned(self):
 		return self.literal_count == self.assigned_literal_count
 
-
 	def show_result(self, result_status):
-		print("Displaying result of solver")
+		print("Status: ", result_status)
 		if result_status == RetVal['satisfied']:
 			print("SAT")
 			for i, lit in enumerate(self.literals):
 				if lit != -1:
-					print(i+1,":",pow(-1, (lit + 1) * i + 1))
+					print(pow(-1, (lit + 1) * i + 1))
 				else:
 					print(i + 1)
 
 		else:
 			print("UNSAT")
 
-	def initialize(self,cnf,num_variables):
+	def initialize(self, cnf, num_variables):
 		"""
 		To Initialize the solver
 		:return: void
@@ -289,7 +289,7 @@ class SATSolverCDCL:
 			return unit_propagate_result
 
 		while not self.all_variable_assigned():
-			picked_variable =self.pick_branching_variable()
+			picked_variable = self.pick_branching_variable()
 			decision_level += 1
 			self.assign_literal(picked_variable, decision_level, -1)
 
