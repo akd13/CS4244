@@ -17,6 +17,7 @@ set_literals = set()
 # Literal assignment based on decision levels
 lit_assignments = {}
 
+
 def parse_input():
 	"""
 	Get the input file with clauses in DIMACS format.
@@ -24,7 +25,6 @@ def parse_input():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('file')
 	return parser.parse_args().file
-
 
 def add_clauses(filename):
 	"""
@@ -53,8 +53,9 @@ def add_clauses(filename):
 				set_literals.add(abs(lit))
 			cnf.append(clause)
 	solver = SATSolverCDCL()
-	solver.initialize(cnf,num_variables)
+	solver.initialize(cnf, num_variables)
 	return solver
+
 
 class SATSolverCDCL:
 	def __init__(self):
@@ -131,14 +132,12 @@ class SATSolverCDCL:
 		self.assigned_literal_count -= 1
 
 	def literal_to_variable_index(self, variable):
-		print("Lit to Var")
 		if variable > 0:
 			return variable - 1
 		else:
 			return -variable - 1
 
 	def conflict_analysis_and_backtrack(self, decision_level):
-		print("perform conflict analysis and backtrack")
 		learnt_clause = self.literal_list_per_clause[self.kappa_antecedent]
 		conflict_decision_level = decision_level
 		this_level_count = 0
@@ -192,7 +191,6 @@ class SATSolverCDCL:
 		return list(set(input_clause))
 
 	def pick_branching_variable(self):
-		print("Get next free assignment")
 		random_value = random.randint(1, 10)
 		too_many_attempts = False
 		attempt_counter = 0
@@ -228,21 +226,19 @@ class SATSolverCDCL:
 	def all_variable_assigned(self):
 		return self.literal_count == self.assigned_literal_count
 
-
 	def show_result(self, result_status):
-		print("Displaying result of solver")
 		if result_status == RetVal['satisfied']:
 			print("SAT")
 			for i, lit in enumerate(self.literals):
 				if lit != -1:
-					print(i+1,":",pow(-1, (lit + 1) * i + 1))
+					print(pow(-1, (lit + 1) * i + 1))
 				else:
 					print(i + 1)
 
 		else:
 			print("UNSAT")
 
-	def initialize(self,cnf,num_variables):
+	def initialize(self, cnf, num_variables):
 		"""
 		To Initialize the solver
 		:return: void
