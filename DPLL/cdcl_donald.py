@@ -102,7 +102,7 @@ class SATSolverCDCL:
 					continue
 
 				if unset_count == 1:
-					self.assigned_literal(self.literal_list_per_clause[i][last_unset_literal], decision_level, i)
+					self.assign_literal(self.literal_list_per_clause[i][last_unset_literal], decision_level, i)
 					unit_clause_found = True
 					break
 				elif false_count == len(self.literal_list_per_clause[i]):
@@ -254,7 +254,7 @@ class SATSolverCDCL:
 				self.already_unsatisfied = True
 
 		for i in range(num_variables):
-			self.literals.append(i+1)
+			self.literals.append(-1)
 			self.literal_decision_level.append(-1)
 			self.literal_antecedent.append(-1)
 			self.literal_frequency.append(0)
@@ -271,7 +271,8 @@ class SATSolverCDCL:
 
 		self.original_literal_frequency = self.literal_frequency
 		self.literal_count = num_variables
-		self.clause_count = len(cnf)
+
+
 
 	def CDCL(self):
 		"""
