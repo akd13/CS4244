@@ -197,6 +197,7 @@ class SATSolverCDCL:
 
 		for i in range(len(self.literals)):
 			if(self.literals[i]==-1):
+				self.pick_counter+=1
 				return (i+1)
 
 		# random_value = random.randint(1, 10)
