@@ -82,7 +82,6 @@ class SATSolverCDCL:
 		last_unset_literal = -1
 
 		while True:
-			print("UP", unset_count)
 			unit_clause_found = False
 			for i, lit_list in enumerate(self.literal_list_per_clause):
 				if unit_clause_found is True:
@@ -115,6 +114,7 @@ class SATSolverCDCL:
 
 			if unit_clause_found is False:
 				break
+
 		self.kappa_antecedent = -1
 		return RetVal['unresolved']
 
@@ -195,6 +195,7 @@ class SATSolverCDCL:
 		return list(set(input_clause))
 
 	def pick_branching_variable(self):
+
 		random_value = random.randint(1, 10)
 		too_many_attempts = False
 		attempt_counter = 0
@@ -230,14 +231,16 @@ class SATSolverCDCL:
 		return self.literal_count == self.assigned_literal_count
 
 	def show_result(self, result_status):
-		print("Status: ", result_status)
 		if result_status == RetVal['satisfied']:
 			print("SAT")
-			for i, lit in enumerate(self.literals):
-				if lit != -1:
-					print(pow(-1, (lit + 1) * i + 1))
+			print("Satisfying clauses",cnf)
+			for i in range(len(self.literals)):
+				if(self.literals[i]==-1):
+					print(i+1,"0 or 1")
+				elif(self.literals[i]==0):
+					print((i+1)*-1)
 				else:
-					print(i + 1)
+					print(i+1)
 
 		else:
 			print("UNSAT")
