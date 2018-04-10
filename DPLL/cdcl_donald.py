@@ -198,7 +198,10 @@ class SATSolverCDCL:
 		for i in range(len(self.literals)):
 			if(self.literals[i]==-1):
 				self.pick_counter+=1
-				return (i+1)
+				if(self.literal_polarity[i]>0):
+					return (i+1)
+				else:
+					return (-1-i)
 
 		# random_value = random.randint(1, 10)
 		# too_many_attempts = False
