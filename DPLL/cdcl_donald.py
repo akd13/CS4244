@@ -84,8 +84,6 @@ class SATSolverCDCL:
 		while True:
 			unit_clause_found = False
 			for i, lit_list in enumerate(self.literal_list_per_clause):
-				if unit_clause_found is True:
-					break
 				false_count = 0
 				unset_count = 0
 				satisfied_flag = False
@@ -95,7 +93,7 @@ class SATSolverCDCL:
 					if self.literals[literal_index] == -1:
 						unset_count += 1
 						last_unset_literal = j
-					elif (self.literals[literal_index] == 0 and self.literal_list_per_clause[i][j] > 0) or (self.literals[literal_index] == 1 and self.literal_list_per_clause[i][j] < 0):
+					elif (self.literals[literal_index] == 0 and lit > 0) or (self.literals[literal_index] == 1 and lit < 0):
 						false_count += 1
 					else:
 						satisfied_flag = True
@@ -114,6 +112,7 @@ class SATSolverCDCL:
 
 			if unit_clause_found is False:
 				break
+
 
 		self.kappa_antecedent = -1
 		return RetVal['unresolved']
@@ -150,8 +149,8 @@ class SATSolverCDCL:
 		# TODO: Current implementation is not do while loop
 		while True:
 			this_level_count = 0
-			for clause in learnt_clause:
-				literal = self.literal_to_variable_index(clause)
+			for l in learnt_clause:
+				literal = self.literal_to_variable_index(l)
 				if self.literal_decision_level[literal] == conflict_decision_level:
 					this_level_count += 1
 
@@ -189,9 +188,9 @@ class SATSolverCDCL:
 
 	def resolve(self, input_clause, literal):
 		second_input = self.literal_list_per_clause[self.literal_antecedent[literal]]
-		input_clause += second_input
-		input_clause[:] = filterfalse(lambda x: x == literal + 1 or x == -literal - 1, input_clause)
-		return sorted(list(set(input_clause)))
+		new_clause = input_clause + second_input
+		new_clause[:] = filterfalse(lambda x: x == literal + 1 or x == -literal - 1, new_clause)
+		return sorted(list(set(new_clause)))
 
 	def pick_branching_variable(self):
 
