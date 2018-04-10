@@ -149,14 +149,13 @@ class SATSolverCDCL:
 
 		# TODO: Current implementation is not do while loop
 		while True:
-			print("CAB", this_level_count)
 			this_level_count = 0
 			for clause in learnt_clause:
 				literal = self.literal_to_variable_index(clause)
 				if self.literal_decision_level[literal] == conflict_decision_level:
 					this_level_count += 1
 
-				if self.literal_decision_level[literal] == conflict_decision_level and self.literal_antecedent[literal] != 1:
+				if self.literal_decision_level[literal] == conflict_decision_level and self.literal_antecedent[literal] != -1:
 					resolver_literal = literal
 
 			if this_level_count == 1:
@@ -192,7 +191,7 @@ class SATSolverCDCL:
 		second_input = self.literal_list_per_clause[self.literal_antecedent[literal]]
 		input_clause += second_input
 		input_clause[:] = filterfalse(lambda x: x == literal + 1 or x == -literal - 1, input_clause)
-		return list(set(input_clause))
+		return sorted(list(set(input_clause)))
 
 	def pick_branching_variable(self):
 
@@ -305,6 +304,7 @@ class SATSolverCDCL:
 				if unit_propagate_result == RetVal['unsatisfied']:
 					if decision_level == 0:
 						return unit_propagate_result
+
 					decision_level = self.conflict_analysis_and_backtrack(decision_level)
 				else:
 					break
