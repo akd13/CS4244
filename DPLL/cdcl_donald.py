@@ -271,6 +271,7 @@ class SATSolverCDCL:
 
 		self.original_literal_frequency = self.literal_frequency
 		self.literal_count = num_variables
+		self.clause_count = len(cnf)
 
 
 
