@@ -223,8 +223,10 @@ class SATSolverCDCL:
 				if(self.literals[i]==-1 and self.original_literal_frequency[i]!=0 and i not in pick_branched and -i not in pick_branched):
 					picked_variable = i+1
 					break
-		print(pick_branched)
+		print("Before appending",pick_branched)
 		pick_branched.append(picked_variable)
+		print("After appending",pick_branched)
+
 		return picked_variable
 
 		# random_value = random.randint(1, 10)
@@ -286,10 +288,6 @@ class SATSolverCDCL:
 			self.literal_list_per_clause.append(clause)
 			if(not(clause)):
 				self.already_unsatisfied = True
-			clause_negated = [-l for l in clause]
-			if(clause_negated in cnf):
-				self.already_unsatisfied = True
-
 
 		for i in range(num_variables):
 			self.literals.append(-1)
