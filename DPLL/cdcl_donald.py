@@ -1,7 +1,7 @@
 import random
 import argparse
 import re
-from itertools import filterfalse
+from itertools import filterfalse,repeat
 import time
 import random
 import numpy as np
@@ -22,6 +22,7 @@ lit_assignments = {}
 
 pick_branched = []
 
+count = 0
 def parse_input():
 	"""
 	Get the input file with clauses in DIMACS format.
@@ -105,10 +106,8 @@ class SATSolverCDCL:
 				if unset_count == 1:
 					self.assign_literal(self.literal_list_per_clause[i][last_unset_literal], decision_level, i)
 					unit_clause_found = True
-					# print("Clause1",self.literal_list_per_clause[i])
 					break
 				elif false_count == len(self.literal_list_per_clause[i]):
-					# print("Clause2",self.literal_list_per_clause[i])
 					self.kappa_antecedent = i
 					return RetVal['unsatisfied']
 
@@ -190,15 +189,16 @@ class SATSolverCDCL:
 		new_clause = input_clause + second_input
 		new_clause[:] = filterfalse(lambda x: x == literal + 1 or x == -literal - 1, new_clause)
 		new_clause = sorted(list(set(new_clause)))
-		print(new_clause)
 		return new_clause
 
 	def pick_branching_variable(self):
 
 		unassigned_list = []
 		for i in range(0, self.literal_count):
-			if(self.literals[i]==-1):
-				unassigned_list.append(i)
+			if(self.literals[i]==-1 and self.literal_polarity[i]!=0):
+				# for j in range(0,abs(self.literal_polarity[i])+1):
+					unassigned_list.append(i)
+		# print(unassigned_list)
 
 		choose = random.choice(unassigned_list)
 		if(self.literal_polarity[choose]>=0):
@@ -315,7 +315,8 @@ class SATSolverCDCL:
 
 		while (self.all_variable_assigned()==False):
 			picked_variable = self.pick_branching_variable()
-			pick_branched.append(picked_variable)
+			global count
+			count += 1
 			decision_level += 1
 			self.assign_literal(picked_variable, decision_level, -1)
 
@@ -342,5 +343,5 @@ solver = add_clauses(parse_input())
 start = time.clock()
 solver.solve()
 end = time.clock()
-
+print("Num times",count)
 print("Time taken is", end-start)
