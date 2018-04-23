@@ -202,7 +202,6 @@ class SATSolverCDCL:
 
 		while True:
 			if random_value > 5 or self.assigned_literal_count < self.literal_count/2 or too_many_attempts:
-				print("Deterministic")
 				self.pick_counter += 1
 				if self.pick_counter == 20 * self.literal_count:
 					for i in range(len(self.literals)):
@@ -211,13 +210,12 @@ class SATSolverCDCL:
 							self.literal_frequency[i] /= 2
 					self.pick_counter = 0
 
-				variable = self.literal_frequency.index(max(self.literal_frequency))
+				variable = self.literal_frequency.index(max(self.literal_frequency)) #TODO: What does this line do?
 				if self.literal_polarity[variable] >= 0:
 					return variable + 1
 				else:
 					return -variable - 1
 			else:
-				print("Random")
 				while attempt_counter < 10*self.literal_count:
 					variable = random.randint(0, self.literal_count - 1)
 					if self.literal_frequency[variable] != -1:
@@ -226,7 +224,6 @@ class SATSolverCDCL:
 						return -variable - 1
 					attempt_counter+= 1
 				too_many_attempts = True
-
 			if too_many_attempts is False:
 				break
 
@@ -299,7 +296,8 @@ class SATSolverCDCL:
 
 		while (self.all_variable_assigned()==False):
 			picked_variable = self.pick_branching_variable()
-			print(picked_variable)
+			pick_branched.append(picked_variable)
+			print(pick_branched)
 			decision_level += 1
 			self.assign_literal(picked_variable, decision_level, -1)
 
