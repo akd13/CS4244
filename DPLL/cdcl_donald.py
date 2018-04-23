@@ -21,7 +21,6 @@ set_literals = set()
 lit_assignments = {}
 
 pick_branched = []
-value_count = 0
 
 def parse_input():
 	"""
@@ -79,11 +78,6 @@ class SATSolverCDCL:
 		self.pick_counter = 0
 
 	def unit_propagate(self, decision_level):
-		unit_clause_found = False
-		false_count = 0
-		unset_count = 0
-		literal_index = None
-		satisfied_flag = False
 		last_unset_literal = -1
 
 		while True:
@@ -107,11 +101,14 @@ class SATSolverCDCL:
 				if satisfied_flag:
 					continue
 
+
 				if unset_count == 1:
 					self.assign_literal(self.literal_list_per_clause[i][last_unset_literal], decision_level, i)
 					unit_clause_found = True
+					# print("Clause1",self.literal_list_per_clause[i])
 					break
 				elif false_count == len(self.literal_list_per_clause[i]):
+					# print("Clause2",self.literal_list_per_clause[i])
 					self.kappa_antecedent = i
 					return RetVal['unsatisfied']
 
@@ -192,7 +189,9 @@ class SATSolverCDCL:
 		second_input = self.literal_list_per_clause[self.literal_antecedent[literal]]
 		new_clause = input_clause + second_input
 		new_clause[:] = filterfalse(lambda x: x == literal + 1 or x == -literal - 1, new_clause)
-		return sorted(list(set(new_clause)))
+		new_clause = sorted(list(set(new_clause)))
+		print(new_clause)
+		return new_clause
 
 	def pick_branching_variable(self):
 
@@ -226,6 +225,8 @@ class SATSolverCDCL:
 				too_many_attempts = True
 			if too_many_attempts is False:
 				break
+
+
 
 	def all_variable_assigned(self):
 		for i in range(0,self.literal_count):
@@ -297,7 +298,6 @@ class SATSolverCDCL:
 		while (self.all_variable_assigned()==False):
 			picked_variable = self.pick_branching_variable()
 			pick_branched.append(picked_variable)
-			print(pick_branched)
 			decision_level += 1
 			self.assign_literal(picked_variable, decision_level, -1)
 
