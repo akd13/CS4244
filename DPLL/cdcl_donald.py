@@ -4,6 +4,7 @@ import re
 from itertools import filterfalse
 import time
 import random
+import numpy as np
 
 # Enum of exit states
 RetVal = {'satisfied': 0, 'unsatisfied': 1, 'unresolved': 2}
@@ -18,8 +19,6 @@ set_literals = set()
 
 # Literal assignment based on decision levels
 lit_assignments = {}
-
-array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 59, 39, -39, 59, 20, -39, -59, 19, -20, -19, 32, -19, -47, -48, -49, -57, -50, -51, -52, -53, -54, -56, -17, -55, -39, -56, -55, -55, -18, 23, -55, -55, 55, -56, -56, -55, -14, 24, 21, -14, 56, -14, -55, -56, -58, -14, 13, 13, -14, 17, 60, 15, -26, 56, -55, -52, -56, -14, 25, -15, 60, -12, 13, -54, 14, 13, 40, -14, 56, 14, -12, 13, -14, -15, -12, -12, -56, 14, 17, -53, 60, -52, 58, 40, -52, 18, 40, 25, -14, -17, 55, 56, 14, -26, 11, -12, 11, 52, 60, 11, -52, -12, -39, -12, 14, -39, 14, 11, 56, -56, 11, 52, 56, -56, -54, 55, -26, -28, 14, -14, -28, 14, -14, 14, 55, -14, 14, 54, 25, 55, -14, 57, 11, 56, 57, 11, -53, -14, -53, -22, 55, -14, 57, 11, 60, -51, -22, 13, 55, -51, 60, 55, 40, -15, -16, 57, 11, 22, -17, -56, 55, -14, 54, 40, 13, 57, 11, -50, 56, -28, 10, 57, 11, 40, -29, 11, -17, 57, 11, -12, -28, 59, 10, 57, 59, 57, 11, -28, 56, 54, 54, -56, 54, -49, -50, 11, 11, -14, 57, 11, 25, 54, 11, -24, 11, 56, 16, 40, 57, -51, 59, 27, 11, 27, 57, -29, 57, -11, -54, -28, 54, -11, 60, -28, -55, -14, 57, -11, 56, -28, -50, -54, 9, -54, 9, 56, -28, 56, -49, -54, 10, 56, -54, 9, -11, -28, -11, 9, 57, -28, -54, -28, -14, -11, 57, 56, 40, 54, -50, 57, -28, -54, -28, 57, -11, 54, -11, -28, -55, -14, 57, -11, -28, 56, -54, 9, -30, 13, 10, 59, 10, -39, -51, 13, -8, 56, 59, 27, -54, -53, 10, -8, 56, -54, 54, -28, -56, -54, 54, 56, -54, 9, -30, 10, 56, -54, 11, -28, -56, 54, -54, -56, 54, -56, -54, 57, -11, -56, 54, -54, -28, 56, 54, -54, -56, 54, -30, -11, -56, 54, -54, -28, 56, 54, -54, -14, 57, -11, -56, 54, -54, -28, 56, 54, -54, 11, -28, -56, 54, -54, 56, 54, 57, 11, -28, -56, -54, 54, -56, -54, 54, -11, 56, -54, 54, -28, -56, -54, 54, -55, 19, -14, 57, -11, -28, 56, -54, 9, 10, 34, -55, 19, -14, 57, -11, -28, 56, -54, 60, 9, 10, 40, -7, -6, 13, -47, 10, 13, 52, -8, -45, 56, -54, 10, -7, 32, 13, -12, -48, 13, 52, -47, 60, -45, 56, -54, 9, 56, -54, -11, -56, 54, 57, -11, -56, -54, -30, -11, 14, 57, 11, -56, -54, 11, 57, 11, -11, 19, -14, 57, 11, -11, 57, 11, -11, -14, 57, 11, -11, 57, 11, -11, 55, 19, -14, -57, 11, -56, 54, 9, -7, 34, 10, 32, -8, 34, 10, 13, 52, -45, 34, 10, 13, 52, -8, -45, -56, 54, 34, -45, 10, -7, -7, 54, -28, -56, -54, 9, -11, -56, -54, 57, -11, 56, 54, -30, -11, 14, -57, -11, 11, 57, -11, 11, 19, 14, -57, -11, 11, 57, -11, 11, 14, -57, -11, 11, 57, -11, -55, 19, 14, -57, 11, 56, 5, 14, -57, 11, 56, 54, 9, 37, -55, 19, 14, -57, 11, 56, -5, 54, 9, 34, -42, -43, -53, -7, -42, -43, 54, -30, 56, 9, 54, -42, -43, -28, 56, 5, 56, 9, 54, 34, 11, 57, -11, 11, -14, -57, -11, 11, 57, -11, 19, 14, -57, 11, -11, 57, 11, -11, -14, -57, 11, -11, 57, 11, -11, 56, 9, -55, 19, 14, -57, -11, -28, 56, 5, 9, 54, -42, -43, 9, 54, -43, 56, 9, 54, -42, -43, 54, -43, 56, 5, -14, 57, 11, 56, 9, 56, 54, -11, -56, -54, -57, -56, 54, -30, -11, 14, -57, -11, -56, 5, -11, -56, 5, 57, -11, -56, 5, -56, 5, 19, 14, 57, -11, -56, 5, -11, -56, 5, 14, -57, -11, 11, 14, -57, -11, 5, -56, 9, -11, 57, -11, 11, 55, 19, 14, -57, -11, -28, -41, 5, -56, 9, 54, -42, -26, -43, -47, -49, 52, -7, -45, 59, -39, -56, 9, 54, -43, -56, 9, 54, -42, 54, -43, 5, -56, 9, 54, -42, -43, -56, 9, 54, -43, -56, 9, 54, -42, -43, 54, -43, -41, 5, -56, 9, -56, 54, 34, 5, -56, 9, 11, 57, 11, 11, 14, -57, -11, -41, 5, -56, 9, 5, -56, 9, -11, 57, -11, -11, 19, -14, -57, -11, -41, 5, 5, -11, 57, -11, -41, 5, 5, -11, -41, 5, 5, 14, -57, -11, -41, -5, 5, -11, -41, -5, -57, -41, -11]
 
 pick_branched = []
 value_count = 0
@@ -148,11 +147,8 @@ class SATSolverCDCL:
 	def conflict_analysis_and_backtrack(self, decision_level):
 		learnt_clause = self.literal_list_per_clause[self.kappa_antecedent]
 		conflict_decision_level = decision_level
-		this_level_count = 0
 		resolver_literal = None
-		literal = None
 
-		# TODO: Current implementation is not do while loop
 		while True:
 			this_level_count = 0
 			for l in learnt_clause:
@@ -200,68 +196,45 @@ class SATSolverCDCL:
 
 	def pick_branching_variable(self):
 
-		# picked_variable = array[0]
-		# array.pop(0)
-		# return picked_variable
-		picked_variable = random.randint(0,self.literal_count-1)
+		random_value = np.random.uniform(low = 1, high = 10)
+		too_many_attempts = False
 		attempt_counter = 0
-		while(True):
-			picked_variable = random.randint(0, self.literal_count-1)
-			attempt_counter+=1
-			if(attempt_counter>50):
+
+		while True:
+			if random_value > 5 or self.assigned_literal_count < self.literal_count/2 or too_many_attempts:
+				print("Deterministic")
+				self.pick_counter += 1
+				if self.pick_counter == 20 * self.literal_count:
+					for i in range(len(self.literals)):
+						self.literal_frequency[i] /= 2
+						if self.literal_frequency[i] != -1:
+							self.literal_frequency[i] /= 2
+					self.pick_counter = 0
+
+				variable = self.literal_frequency.index(max(self.literal_frequency))
+				if self.literal_polarity[variable] >= 0:
+					return variable + 1
+				else:
+					return -variable - 1
+			else:
+				print("Random")
+				while attempt_counter < 10*self.literal_count:
+					variable = random.randint(0, self.literal_count - 1)
+					if self.literal_frequency[variable] != -1:
+						if self.literal_polarity[variable] >= 0:
+							return variable + 1
+						return -variable - 1
+					attempt_counter+= 1
+				too_many_attempts = True
+
+			if too_many_attempts is False:
 				break
-			if(self.literals[picked_variable]==-1 and picked_variable not in pick_branched and -picked_variable not in pick_branched):
-				if(self.literal_frequency[picked_variable]>0):
-					if(self.literal_polarity[picked_variable]>=0):
-						picked_variable+=1
-					else:
-						picked_variable=-picked_variable-1
-				break
-
-		if(attempt_counter>50):
-			for i in range(self.literal_count):
-				if(self.literals[i]==-1 and self.original_literal_frequency[i]!=0 and i not in pick_branched and -i not in pick_branched):
-					picked_variable = i+1
-					break
-		print("Before appending",pick_branched)
-		pick_branched.append(picked_variable)
-		print("After appending",pick_branched)
-
-		return picked_variable
-
-		# random_value = random.randint(1, 10)
-		# too_many_attempts = False
-		# attempt_counter = 0
-		#
-		# while True:
-		# 	if random_value > 4 or self.assigned_literal_count < self.literal_count or too_many_attempts:
-		# 		self.pick_counter += 1
-		# 		if self.pick_counter == 20 * self.literal_count:
-		# 			for i in range(len(self.literals)):
-		# 				self.original_literal_frequency[i] /= 2
-		# 				if self.literal_frequency[i] != -1:
-		# 					self.literal_frequency[i] /= 2
-		# 			self.pick_counter = 0
-		#
-		# 		variable = self.literal_frequency.index(max(self.literal_frequency))
-		# 		if self.literal_polarity[variable] >= 0:
-		# 			return variable + 1
-		# 		return -variable - 1
-		# 	else:
-		# 		while attempt_counter < 10 * self.literal_count:
-		# 			variable = random.randint(0, self.literal_count - 1)
-		# 			if self.literal_frequency[variable] != -1:
-		# 				if self.literal_polarity[variable] >= 0:
-		# 					return variable + 1
-		# 				return -variable - 1
-		# 			attempt_counter += 1
-		# 		too_many_attempts = True
-		#
-		# 	if too_many_attempts is False:
-		# 		break
 
 	def all_variable_assigned(self):
-		return self.literal_count == self.assigned_literal_count
+		for i in range(0,self.literal_count):
+			if(self.literals[i] == -1):
+				return False
+		return True
 
 	def show_result(self, result_status):
 		if result_status == RetVal['satisfied']:
@@ -324,8 +297,9 @@ class SATSolverCDCL:
 		if unit_propagate_result == RetVal['unsatisfied']:
 			return unit_propagate_result
 
-		while not self.all_variable_assigned():
+		while (self.all_variable_assigned()==False):
 			picked_variable = self.pick_branching_variable()
+			print(picked_variable)
 			decision_level += 1
 			self.assign_literal(picked_variable, decision_level, -1)
 
