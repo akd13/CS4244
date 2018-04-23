@@ -198,6 +198,12 @@ class SATSolverCDCL:
 		random_value = np.random.uniform(low = 1, high = 10)
 		too_many_attempts = False
 		attempt_counter = 0
+		assigned_literal_count = 0
+		for i in range(0,self.literal_count):
+			if(self.literals[i]!=-1):
+				assigned_literal_count +=1
+		self.assigned_literal_count = assigned_literal_count
+
 
 		while True:
 			if random_value > 5 or self.assigned_literal_count < self.literal_count/2 or too_many_attempts:
