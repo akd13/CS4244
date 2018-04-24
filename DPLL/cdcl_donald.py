@@ -195,7 +195,7 @@ class SATSolverCDCL:
 
 		unassigned_list = []
 		for i in range(0, self.literal_count):
-			if(self.literals[i]==-1 and self.literal_polarity[i]!=0):
+			if(self.literals[i] == -1 and self.literal_polarity[i]!=0):
 				unassigned_list.append(i)
 			# for j in range(0,abs(self.literal_polarity[i])+1):
 		# print(unassigned_list)
@@ -313,7 +313,7 @@ class SATSolverCDCL:
 		if unit_propagate_result == RetVal['unsatisfied']:
 			return unit_propagate_result
 
-		while (self.all_variable_assigned()==False):
+		while (not(self.all_variable_assigned())):
 			picked_variable = self.pick_branching_variable()
 			global count
 			count += 1
