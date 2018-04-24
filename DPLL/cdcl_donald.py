@@ -196,8 +196,8 @@ class SATSolverCDCL:
 		unassigned_list = []
 		for i in range(0, self.literal_count):
 			if(self.literals[i]==-1 and self.literal_polarity[i]!=0):
-				# for j in range(0,abs(self.literal_polarity[i])+1):
-					unassigned_list.append(i)
+				unassigned_list.append(i)
+			# for j in range(0,abs(self.literal_polarity[i])+1):
 		# print(unassigned_list)
 
 		choose = random.choice(unassigned_list)
