@@ -4,7 +4,6 @@ import re
 from itertools import filterfalse,repeat
 import time
 import random
-import numpy as np
 
 # Enum of exit states
 RetVal = {'satisfied': 0, 'unsatisfied': 1, 'unresolved': 2}
@@ -23,6 +22,8 @@ lit_assignments = {}
 pick_branched = []
 
 count = 0
+
+
 def parse_input():
 	"""
 	Get the input file with clauses in DIMACS format.
@@ -30,6 +31,7 @@ def parse_input():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('file')
 	return parser.parse_args().file
+
 
 def add_clauses(filename):
 	"""
@@ -105,7 +107,6 @@ class SATSolverCDCL:
 				if satisfied_flag:
 					continue
 
-
 				if unset_count == 1:
 					self.assign_literal(self.literal_list_per_clause[i][last_unset_literal], decision_level, i)
 					unit_clause_found = True
@@ -117,7 +118,6 @@ class SATSolverCDCL:
 
 			if unit_clause_found is False:
 				break
-
 
 		self.kappa_antecedent = -1
 
@@ -204,13 +204,13 @@ class SATSolverCDCL:
 
 		unassigned_list = []
 		for i in range(0, self.literal_count):
-			if(self.literals[i] == -1):
+			if self.literals[i] == -1:
 				unassigned_list.append(i)
 			# for j in range(0,abs(self.literal_polarity[i])+1):
 		# print(unassigned_list)
 
 		choose = random.choice(unassigned_list)
-		if(self.literal_polarity[choose]>=0):
+		if self.literal_polarity[choose]>=0:
 			return choose+1
 		else:
 			return -choose-1
@@ -253,11 +253,9 @@ class SATSolverCDCL:
 		# 	if too_many_attempts is False:
 		# 		break
 
-
-
 	def all_variable_assigned(self):
 		for i in range(0,self.literal_count):
-			if(self.literals[i] == -1):
+			if self.literals[i] == -1:
 				return False
 		return True
 
@@ -266,9 +264,9 @@ class SATSolverCDCL:
 			print("SAT")
 			print("Satisfying clauses",cnf)
 			for i in range(len(self.literals)):
-				if(self.literals[i]==-1):
+				if self.literals[i]==-1:
 					print(i+1,"can be 0 or 1")
-				elif(self.literals[i]==0):
+				elif self.literals[i]==0:
 					print((i+1)*-1)
 				else:
 					print(i+1)
@@ -284,7 +282,7 @@ class SATSolverCDCL:
 
 		for clause in cnf:
 			self.literal_list_per_clause.append(clause)
-			if(not(clause)):
+			if not clause:
 				self.already_unsatisfied = True
 
 		for i in range(num_variables):
@@ -296,18 +294,16 @@ class SATSolverCDCL:
 
 		for clause in cnf:
 			for literal in clause:
-				if(literal > 0):
-					self.literal_frequency[literal-1]+=1
-					self.literal_polarity[literal-1]+=1
+				if literal > 0:
+					self.literal_frequency[literal-1] += 1
+					self.literal_polarity[literal-1] += 1
 				else:
-					self.literal_frequency[-literal-1]+=1
-					self.literal_polarity[-literal-1]-=1
+					self.literal_frequency[-literal-1] += 1
+					self.literal_polarity[-literal-1] -= 1
 
 		self.original_literal_frequency = self.literal_frequency
 		self.literal_count = num_variables
 		self.clause_count = len(cnf)
-
-
 
 	def CDCL(self):
 		"""
@@ -323,7 +319,7 @@ class SATSolverCDCL:
 			del decision_level, unit_propagate_result
 			return unit_propagate_result
 
-		while (not(self.all_variable_assigned())):
+		while not self.all_variable_assigned():
 			picked_variable = self.pick_branching_variable()
 			global count
 			count += 1
@@ -354,5 +350,5 @@ solver = add_clauses(parse_input())
 start = time.clock()
 solver.solve()
 end = time.clock()
-print("Num times",count)
+print("Num times", count)
 print("Time taken is", end-start)
