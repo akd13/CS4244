@@ -4,12 +4,12 @@ import re
 from itertools import filterfalse,repeat
 import time
 import random
+import numpy as np
+import operator
+
 
 # Enum of exit states
 RetVal = {'satisfied': 0, 'unsatisfied': 1, 'unresolved': 2}
-
-# CNF clauses in clause object form
-clause_list = []
 
 # CNF clauses in list form
 cnf = []
@@ -74,6 +74,7 @@ class SATSolverCDCL:
 		self.literal_polarity = []
 		self.variable_frequency = []
 		self.two_clause = []
+		self.two_clause_previous_state = []
 		self.literal_count = 0
 		self.clause_count = 0
 		self.kappa_antecedent = -1
@@ -107,6 +108,7 @@ class SATSolverCDCL:
 					self.literal_polarity[-literal-1] -= 1
 
 		self.variable_frequency = [abs(num) for num in self.literal_frequency]
+		self.two_clause_previous_state = self.two_clause
 		self.literal_count = num_variables
 		self.clause_count = len(cnf)
 
@@ -261,24 +263,24 @@ class SATSolverCDCL:
 					return i+1
 
 	def pick_branching_variable_two_clause(self):
-		print(self.two_clause)
+
 		unassigned_list = []
-		for i in range(0, self.literal_count):
-			if self.literals[i] == -1:
-				for j in range(0,self.literal_frequency[i]):
-					unassigned_list.append(i)
-
-		if(unassigned_list):
-			choose = random.choice(unassigned_list)
-			if self.literal_polarity[choose] >= 0:
-				return choose + 1
-			else:
-				return -choose - 1
+		if(count!=0 and self.two_clause == self.two_clause_previous_state):
+			return self.pick_branching_variable_frequency()
 		else:
-			for i in range(0, self.literal_count):
-				if self.literals[i] == -1:
-					return i+1
+			variable = self.generate_two_clause_variable()
+			return variable
 
+	def generate_two_clause_variable(self):
+		print("This is how many times the 2 clause method was called")
+		self.two_clause_previous_state = self.two_clause
+		two_clause_lit_frequency = np.zeros(self.literal_count+1)
+		for clause in self.two_clause:
+			for l in clause:
+				two_clause_lit_frequency[abs(l)]+=1
+		max_value = np.amax(two_clause_lit_frequency)
+		indices = [i for i, j in enumerate(two_clause_lit_frequency) if j == max_value]
+		return random.choice(indices)
 
 	def all_variable_assigned(self):
 		for i in range(0, self.literal_count):
