@@ -72,7 +72,8 @@ class SATSolverCDCL:
 		self.literal_list_per_clause = []
 		self.literal_frequency = []
 		self.literal_polarity = []
-		self.original_literal_frequency = []
+		self.variable_frequency = []
+		self.two_clause = []
 		self.literal_count = 0
 		self.clause_count = 0
 		self.kappa_antecedent = -1
@@ -95,6 +96,8 @@ class SATSolverCDCL:
 			self.literal_polarity.append(0)
 
 		for clause in cnf:
+			if(len(clause) == 2):
+				self.two_clause.append(clause)
 			for literal in clause:
 				if literal > 0:
 					self.literal_frequency[literal-1] += 1
@@ -103,7 +106,7 @@ class SATSolverCDCL:
 					self.literal_frequency[-literal-1] += 1
 					self.literal_polarity[-literal-1] -= 1
 
-		self.original_literal_frequency = self.literal_frequency
+		self.variable_frequency = [abs(num) for num in self.literal_frequency]
 		self.literal_count = num_variables
 		self.clause_count = len(cnf)
 
@@ -162,7 +165,7 @@ class SATSolverCDCL:
 		self.literals[literal_index] = -1
 		self.literal_decision_level[literal_index] = -1
 		self.literal_antecedent[literal_index] = -1
-		self.literal_frequency[literal_index] = self.original_literal_frequency[literal_index]
+		self.literal_frequency[literal_index] = self.variable_frequency[literal_index]
 		self.assigned_literal_count -= 1
 
 	def literal_to_variable_index(self, variable):
@@ -193,13 +196,16 @@ class SATSolverCDCL:
 
 		self.literal_list_per_clause.append(learnt_clause)
 
+		if(len(learnt_clause)==2):
+			self.two_clause.append(learnt_clause)
+
 		for lit in learnt_clause:
 			literal_index = self.literal_to_variable_index(lit)
 			update = 1 if lit > 0 else -1
 			self.literal_polarity[literal_index] += update
 			if self.literal_frequency[literal_index] != -1:
 				self.literal_frequency[literal_index] += 1
-			self.original_literal_frequency[literal_index] += 1
+			self.variable_frequency[literal_index] += 1
 
 		self.clause_count += 1
 		backtracked_decision_level = 0
@@ -236,6 +242,44 @@ class SATSolverCDCL:
 		else:
 			return -choose-1
 
+	def pick_branching_variable_frequency(self):
+		unassigned_list = []
+		for i in range(0, self.literal_count):
+			if self.literals[i] == -1:
+				for j in range(0,self.literal_frequency[i]):
+					unassigned_list.append(i)
+
+		if(unassigned_list):
+			choose = random.choice(unassigned_list)
+			if self.literal_polarity[choose] >= 0:
+				return choose + 1
+			else:
+				return -choose - 1
+		else:
+			for i in range(0, self.literal_count):
+				if self.literals[i] == -1:
+					return i+1
+
+	def pick_branching_variable_two_clause(self):
+		print(self.two_clause)
+		unassigned_list = []
+		for i in range(0, self.literal_count):
+			if self.literals[i] == -1:
+				for j in range(0,self.literal_frequency[i]):
+					unassigned_list.append(i)
+
+		if(unassigned_list):
+			choose = random.choice(unassigned_list)
+			if self.literal_polarity[choose] >= 0:
+				return choose + 1
+			else:
+				return -choose - 1
+		else:
+			for i in range(0, self.literal_count):
+				if self.literals[i] == -1:
+					return i+1
+
+
 	def all_variable_assigned(self):
 		for i in range(0, self.literal_count):
 			if self.literals[i] == -1:
@@ -268,11 +312,11 @@ class SATSolverCDCL:
 
 		unit_propagate_result = self.unit_propagate(decision_level)
 		if unit_propagate_result == RetVal['unsatisfied']:
-			del decision_level, unit_propagate_result
+			del decision_level
 			return unit_propagate_result
 
 		while not self.all_variable_assigned():
-			picked_variable = self.pick_branching_variable()
+			picked_variable = self.pick_branching_variable_two_clause()
 			global count
 			count += 1
 			decision_level += 1
@@ -302,5 +346,5 @@ solver = add_clauses(parse_input())
 start = time.clock()
 solver.solve()
 end = time.clock()
-print("Num times", count)
+print("Num times pick-branching", count)
 print("Time taken is", end-start)
