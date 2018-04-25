@@ -7,6 +7,7 @@ import random
 
 # Enum of exit states
 RetVal = {'satisfied': 0, 'unsatisfied': 1, 'unresolved': 2}
+
 # CNF clauses in clause object form
 clause_list = []
 
@@ -59,16 +60,14 @@ def add_clauses(filename):
 			for lit in clause:
 				set_literals.add(abs(lit))
 			cnf.append(clause)
-	solver = SATSolverCDCL()
-	solver.initialize(cnf, num_variables)
+	solver = SATSolverCDCL(cnf, num_variables)
 
 	del file, filename, num_variables, comment, header, clause_input_cnf, raw_clause
-
 	return solver
 
 
 class SATSolverCDCL:
-	def __init__(self):
+	def __init__(self, cnf, num_variables):
 		self.literals = []
 		self.literal_list_per_clause = []
 		self.literal_frequency = []
@@ -82,6 +81,31 @@ class SATSolverCDCL:
 		self.assigned_literal_count = 0
 		self.already_unsatisfied = False
 		self.pick_counter = 0
+
+		for clause in cnf:
+			self.literal_list_per_clause.append(clause)
+			if not clause:
+				self.already_unsatisfied = True
+
+		for i in range(num_variables):
+			self.literals.append(-1)
+			self.literal_decision_level.append(-1)
+			self.literal_antecedent.append(-1)
+			self.literal_frequency.append(0)
+			self.literal_polarity.append(0)
+
+		for clause in cnf:
+			for literal in clause:
+				if literal > 0:
+					self.literal_frequency[literal-1] += 1
+					self.literal_polarity[literal-1] += 1
+				else:
+					self.literal_frequency[-literal-1] += 1
+					self.literal_polarity[-literal-1] -= 1
+
+		self.original_literal_frequency = self.literal_frequency
+		self.literal_count = num_variables
+		self.clause_count = len(cnf)
 
 	def unit_propagate(self, decision_level):
 		last_unset_literal = -1
@@ -201,20 +225,19 @@ class SATSolverCDCL:
 		return new_clause
 
 	def pick_branching_variable(self):
-
 		unassigned_list = []
 		for i in range(0, self.literal_count):
 			if self.literals[i] == -1:
 				unassigned_list.append(i)
 
 		choose = random.choice(unassigned_list)
-		if self.literal_polarity[choose]>=0:
+		if self.literal_polarity[choose] >= 0:
 			return choose+1
 		else:
 			return -choose-1
 
 	def all_variable_assigned(self):
-		for i in range(0,self.literal_count):
+		for i in range(0, self.literal_count):
 			if self.literals[i] == -1:
 				return False
 		return True
@@ -224,46 +247,15 @@ class SATSolverCDCL:
 			print("SAT")
 			print("Satisfying clauses",cnf)
 			for i in range(len(self.literals)):
-				if self.literals[i]==-1:
+				if self.literals[i] == -1:
 					print(i+1,"can be 0 or 1")
-				elif self.literals[i]==0:
+				elif self.literals[i] == 0:
 					print((i+1)*-1)
 				else:
 					print(i+1)
 
 		else:
 			print("UNSAT")
-
-	def initialize(self, cnf, num_variables):
-		"""
-		To Initialize the solver
-		:return: void
-		"""
-
-		for clause in cnf:
-			self.literal_list_per_clause.append(clause)
-			if not clause:
-				self.already_unsatisfied = True
-
-		for i in range(num_variables):
-			self.literals.append(-1)
-			self.literal_decision_level.append(-1)
-			self.literal_antecedent.append(-1)
-			self.literal_frequency.append(0)
-			self.literal_polarity.append(0)
-
-		for clause in cnf:
-			for literal in clause:
-				if literal > 0:
-					self.literal_frequency[literal-1] += 1
-					self.literal_polarity[literal-1] += 1
-				else:
-					self.literal_frequency[-literal-1] += 1
-					self.literal_polarity[-literal-1] -= 1
-
-		self.original_literal_frequency = self.literal_frequency
-		self.literal_count = num_variables
-		self.clause_count = len(cnf)
 
 	def CDCL(self):
 		"""
