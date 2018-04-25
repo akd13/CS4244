@@ -206,52 +206,12 @@ class SATSolverCDCL:
 		for i in range(0, self.literal_count):
 			if self.literals[i] == -1:
 				unassigned_list.append(i)
-			# for j in range(0,abs(self.literal_polarity[i])+1):
-		# print(unassigned_list)
 
 		choose = random.choice(unassigned_list)
 		if self.literal_polarity[choose]>=0:
 			return choose+1
 		else:
 			return -choose-1
-
-		# random_value = np.random.uniform(low = 1, high = 10)
-		# too_many_attempts = False
-		# attempt_counter = 0
-		# assigned_literal_count = 0
-		# for i in range(0,self.literal_count):
-		# 	if(self.literals[i]!=-1):
-		# 		assigned_literal_count +=1
-		# self.assigned_literal_count = assigned_literal_count
-		#
-		#
-		# while True:
-		# 	if random_value > 5 or self.assigned_literal_count < self.literal_count/2 or too_many_attempts:
-		# 		self.pick_counter += 1
-		# 		if self.pick_counter == 20 * self.literal_count:
-		# 			for i in range(len(self.literals)):
-		# 				self.literal_frequency[i] /= 2
-		# 				if self.literal_frequency[i] != -1:
-		# 					self.literal_frequency[i] /= 2
-		# 			self.pick_counter = 0
-		#
-		# 		variable = self.literal_frequency.index(max(self.literal_frequency)) #TODO: What does this line do?
-		# 		if self.literal_polarity[variable] >= 0:
-		# 			return variable + 1
-		# 		else:
-		# 			return -variable - 1
-		# 	else:
-		# 		while attempt_counter < 10*self.literal_count:
-		# 			variable = random.randint(0, self.literal_count - 1)
-		# 			if self.literal_frequency[variable] != -1:
-		# 				if self.literal_polarity[variable] >= 0:
-		# 					return variable + 1
-		# 				return -variable - 1
-		# 			attempt_counter+= 1
-		# 		too_many_attempts = True
-		#
-		# 	if too_many_attempts is False:
-		# 		break
 
 	def all_variable_assigned(self):
 		for i in range(0,self.literal_count):
