@@ -59,6 +59,9 @@ def add_clauses(filename):
 			cnf.append(clause)
 	solver = SATSolverCDCL()
 	solver.initialize(cnf, num_variables)
+
+	del file, filename, num_variables, comment, header, clause_input_cnf, raw_clause
+
 	return solver
 
 
@@ -109,6 +112,7 @@ class SATSolverCDCL:
 					break
 				elif false_count == len(self.literal_list_per_clause[i]):
 					self.kappa_antecedent = i
+					del last_unset_literal, false_count, unset_count, satisfied_flag, literal_index, unit_clause_found
 					return RetVal['unsatisfied']
 
 			if unit_clause_found is False:
@@ -116,6 +120,8 @@ class SATSolverCDCL:
 
 
 		self.kappa_antecedent = -1
+
+		del last_unset_literal, false_count, unset_count, satisfied_flag, literal_index, unit_clause_found
 		return RetVal['unresolved']
 
 	def assign_literal(self, variable, decision_level, antecedent):
@@ -126,6 +132,7 @@ class SATSolverCDCL:
 		self.literal_antecedent[literal] = antecedent
 		self.literal_frequency[literal] = -1
 		self.assigned_literal_count += 1
+		del literal, value
 
 	def unassign_literal(self, literal_index):
 		self.literals[literal_index] = -1
@@ -182,6 +189,7 @@ class SATSolverCDCL:
 			if self.literal_decision_level[i] > backtracked_decision_level:
 				self.unassign_literal(i)
 
+		del learnt_clause, conflict_decision_level, resolver_literal, this_level_count, literal, l, lit, update, literal_index, i
 		return backtracked_decision_level
 
 	def resolve(self, input_clause, literal):
@@ -189,13 +197,14 @@ class SATSolverCDCL:
 		new_clause = input_clause + second_input
 		new_clause[:] = filterfalse(lambda x: x == literal + 1 or x == -literal - 1, new_clause)
 		new_clause = sorted(list(set(new_clause)))
+		del second_input
 		return new_clause
 
 	def pick_branching_variable(self):
 
 		unassigned_list = []
 		for i in range(0, self.literal_count):
-			if(self.literals[i] == -1 and self.literal_polarity[i]!=0):
+			if(self.literals[i] == -1):
 				unassigned_list.append(i)
 			# for j in range(0,abs(self.literal_polarity[i])+1):
 		# print(unassigned_list)
@@ -311,6 +320,7 @@ class SATSolverCDCL:
 
 		unit_propagate_result = self.unit_propagate(decision_level)
 		if unit_propagate_result == RetVal['unsatisfied']:
+			del decision_level, unit_propagate_result
 			return unit_propagate_result
 
 		while (not(self.all_variable_assigned())):
@@ -329,6 +339,7 @@ class SATSolverCDCL:
 					decision_level = self.conflict_analysis_and_backtrack(decision_level)
 				else:
 					break
+		del decision_level, unit_propagate_result, picked_variable
 		return RetVal['satisfied']
 
 	def solve(self):
