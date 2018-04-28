@@ -251,7 +251,6 @@ class SATSolverCDCL:
 			return variable
 
 	def generate_two_clause_variable(self):
-		print("This is how many times the 2 clause method was called")
 		self.two_clause_previous_state = self.two_clause
 		two_clause_lit_frequency = np.zeros(self.literal_count+1)
 		for clause in self.two_clause:
