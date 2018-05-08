@@ -224,15 +224,16 @@ class SATSolverCDCL:
 		return new_clause
 
 	def pick_branching_choice(self):
-		options = {'random': self.pick_branching_variable_random,
-				   'random_frequency':self.pick_branching_variable_random_frequency,
-				   '2-clause':self.pick_branching_variable_two_clause,
-				   'DLIS':self.pick_branching_variable_DLIS(),
-				   'VSIDS': self.pick_branching_variable_VSIDS(),
+		options = {'random': self.random,
+				   'random_frequency':self.random_frequency,
+				   '2-clause':self.two_clause,
+				   'DLIS':self.DLIS(),
+				   'DLIS_upgrade':self.VSIDS_nodecay(),
+				   'VSIDS': self.VSIDS(),
 				   }
 		return options[self.choice]
 
-	def pick_branching_variable_random(self):
+	def random(self):
 		unassigned_list = []
 		for i in range(0, self.literal_count):
 			if self.literals[i] == -1:
@@ -244,7 +245,7 @@ class SATSolverCDCL:
 		else:
 			return -choose-1
 
-	def pick_branching_variable_random_frequency(self):
+	def random_frequency(self):
 		unassigned_list = []
 		for i in range(0, self.literal_count):
 			if self.literals[i] == -1:
@@ -260,10 +261,10 @@ class SATSolverCDCL:
 		else:
 			return self.first_unassigned_variable()
 
-	def pick_branching_variable_DLIS(self):
+	def DLIS(self):
 
 		if(self.count>self.literal_count/2):
-			return self.pick_branching_variable_most_frequent()
+			return self.VSIDS_nodecay()
 
 		unresolved_clauses = copy.deepcopy(self.literal_list_per_clause)
 		literal_list = range(-self.literal_count,self.literal_count+1)
@@ -278,14 +279,20 @@ class SATSolverCDCL:
 		for clause in unresolved_clauses:
 			for lit in clause:
 				current_literal_count[lit] += 1
+		for i in range(0,self.literal_count):
+			if(self.literals[i]!=-1):
+				current_literal_count.pop(i+1)
+				current_literal_count.pop(-i-1)
+		max_count =max(current_literal_count.values())
+		keys_list = [k for k, v in current_literal_count.items() if v == max_count]
 
-		variable = max(current_literal_count.items(), key=operator.itemgetter(1))[0]
+		variable = random.choice(keys_list)
 		if(variable != self.previous_var):
 			return variable
 		else:
-			return self.pick_branching_variable_most_frequent()
+			return self.first_unassigned_variable()
 
-	def pick_branching_variable_most_frequent(self):
+	def VSIDS_nodecay(self):
 		unassigned_list = []
 		for i in range(0, self.literal_count):
 			if self.literals[i] == -1:
@@ -302,20 +309,15 @@ class SATSolverCDCL:
 		else:
 			return self.first_unassigned_variable()
 
-	def first_unassigned_variable(self):
-		for i in range(0, self.literal_count):
-			if self.literals[i] == -1:
-				return i + 1
-
-	def pick_branching_variable_two_clause(self):
+	def two_clause(self):
 
 		if self.count != 0 and self.two_clause == self.two_clause_previous_state:
-			return self.pick_branching_variable_random_frequency()
+			return self.random_frequency()
 		else:
 			variable = self.generate_two_clause_variable()
 			return variable
 
-	def pick_branching_variable_VSIDS(self):
+	def VSIDS(self):
 
 		unassigned_list = {}
 		for i in range(0, self.literal_count):
@@ -330,6 +332,11 @@ class SATSolverCDCL:
 			return variable
 		else:
 			return self.first_unassigned_variable()
+
+	def first_unassigned_variable(self):
+		for i in range(0, self.literal_count):
+			if self.literals[i] == -1:
+				return i + 1
 
 	def generate_two_clause_variable(self):
 		self.two_clause_previous_state = self.two_clause
