@@ -78,16 +78,16 @@ class TestStringMethods(unittest.TestCase):
 		print("Num times pick-branching", solver.get_num_pick_branch())
 		print("Time taken is", end - start)
 
-	def test_unsat_complex(self):
-		print()
-		print("Testing unsat_complex.cnf")
-		filename = "../sample_cnf/unsat_complex.cnf"
-		solver = add_arguments(filename,heuristic)
-		start = time.clock()
-		self.assertEqual(solver.solve_test(), 1)
-		end = time.clock()
-		print("Num times pick-branching", solver.get_num_pick_branch())
-		print("Time taken is", end - start)
+	# def test_unsat_complex(self):
+	# 	print()
+	# 	print("Testing unsat_complex.cnf")
+	# 	filename = "../sample_cnf/unsat_complex.cnf"
+	# 	solver = add_arguments(filename,heuristic)
+	# 	start = time.clock()
+	# 	self.assertEqual(solver.solve_test(), 1)
+	# 	end = time.clock()
+	# 	print("Num times pick-branching", solver.get_num_pick_branch())
+	# 	print("Time taken is", end - start)
 
 	def test_unsat_simple(self):
 		print()

@@ -279,8 +279,6 @@ class SATSolverCDCL:
 			for lit in clause:
 				current_literal_count[lit] += 1
 
-		max_cur_count = max(current_literal_count.values())
-		keys_list = [k for k, v in current_literal_count.items() if v == max_cur_count]
 		variable = max(current_literal_count.items(), key=operator.itemgetter(1))[0]
 		if(variable != self.previous_var):
 			return variable
@@ -331,7 +329,7 @@ class SATSolverCDCL:
 		if(variable != self.previous_var):
 			return variable
 		else:
-			return random.choice(keys_list)
+			return self.first_unassigned_variable()
 
 	def generate_two_clause_variable(self):
 		self.two_clause_previous_state = self.two_clause
