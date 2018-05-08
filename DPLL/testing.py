@@ -2,7 +2,6 @@ import unittest
 import time
 from DPLL.cdcl import add_arguments
 
-global heuristic
 heuristic= "DLIS"
 
 class TestStringMethods(unittest.TestCase):
