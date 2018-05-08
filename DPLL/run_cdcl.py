@@ -1,12 +1,6 @@
-from DPLL.cdcl_donald import add_clauses
-from DPLL import cdcl_donald
-import random
+from DPLL.cdcl import add_arguments
 import argparse
-import re
-from itertools import filterfalse,repeat
 import time
-import random
-
 
 def parse_input():
 	"""
@@ -14,9 +8,11 @@ def parse_input():
 	"""
 	parser = argparse.ArgumentParser()
 	parser.add_argument('file')
-	return parser.parse_args().file
+	parser.add_argument('pick_branching',choices = ['random', 'random_frequency', '2-clause', 'DLIS','VSIDS'], default = 'DLIS')
+	return parser.parse_args().file, parser.parse_args().pick_branching
 
-solver = add_clauses(parse_input())
+filename, heuristic = parse_input()
+solver = add_arguments(filename,heuristic)
 start = time.clock()
 solver.solve()
 end = time.clock()

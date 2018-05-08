@@ -50,4 +50,4 @@ def generate_cnf(N, L):
 			file.write("0\n")
 
 
-generate_cnf(150, 50)
+generate_cnf(150, 500)

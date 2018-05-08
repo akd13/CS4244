@@ -1,6 +1,9 @@
 import unittest
 import time
-from DPLL.cdcl_donald import add_clauses
+from DPLL.cdcl import add_arguments
+
+global heuristic
+heuristic= "DLIS"
 
 class TestStringMethods(unittest.TestCase):
 
@@ -13,7 +16,7 @@ class TestStringMethods(unittest.TestCase):
 		print()
 		print("Testing hoge.cnf")
 		filename = "../sample_cnf/hoge.cnf"
-		solver = add_clauses(filename)
+		solver = add_arguments(filename,heuristic)
 		start = time.clock()
 		self.assertEqual(solver.solve_test(), 0)
 		end = time.clock()
@@ -24,7 +27,7 @@ class TestStringMethods(unittest.TestCase):
 		print()
 		print("Testing input.cnf")
 		filename = "../sample_cnf/input.cnf"
-		solver = add_clauses(filename)
+		solver = add_arguments(filename,heuristic)
 		start = time.clock()
 		self.assertEqual(solver.solve_test(), 0)
 		end = time.clock()
@@ -35,7 +38,7 @@ class TestStringMethods(unittest.TestCase):
 		print()
 		print("Testing test.cnf")
 		filename = "../sample_cnf/test.cnf"
-		solver = add_clauses(filename)
+		solver = add_arguments(filename,heuristic)
 		start = time.clock()
 		self.assertEqual(solver.solve_test(), 0)
 		end = time.clock()
@@ -46,7 +49,7 @@ class TestStringMethods(unittest.TestCase):
 		print()
 		print("Testing test1.cnf")
 		filename = "../sample_cnf/test1.cnf"
-		solver = add_clauses(filename)
+		solver = add_arguments(filename,heuristic)
 		start = time.clock()
 		self.assertEqual(solver.solve_test(), 0)
 		end = time.clock()
@@ -57,7 +60,7 @@ class TestStringMethods(unittest.TestCase):
 		print()
 		print("Testing unsat.cnf")
 		filename = "../sample_cnf/unsat.cnf"
-		solver = add_clauses(filename)
+		solver = add_arguments(filename,heuristic)
 		start = time.clock()
 		self.assertEqual(solver.solve_test(), 1)
 		end = time.clock()
@@ -68,7 +71,7 @@ class TestStringMethods(unittest.TestCase):
 		print()
 		print("Testing unsat1.cnf")
 		filename = "../sample_cnf/unsat1.cnf"
-		solver = add_clauses(filename)
+		solver = add_arguments(filename,heuristic)
 		start = time.clock()
 		self.assertEqual(solver.solve_test(), 1)
 		end = time.clock()
@@ -79,7 +82,7 @@ class TestStringMethods(unittest.TestCase):
 		print()
 		print("Testing unsat_complex.cnf")
 		filename = "../sample_cnf/unsat_complex.cnf"
-		solver = add_clauses(filename)
+		solver = add_arguments(filename,heuristic)
 		start = time.clock()
 		self.assertEqual(solver.solve_test(), 1)
 		end = time.clock()
@@ -90,7 +93,7 @@ class TestStringMethods(unittest.TestCase):
 		print()
 		print("Testing unsat_simple.cnf")
 		filename = "../sample_cnf/unsat_simple.cnf"
-		solver = add_clauses(filename)
+		solver = add_arguments(filename,heuristic)
 		start = time.clock()
 		self.assertEqual(solver.solve_test(), 1)
 		end = time.clock()
@@ -101,12 +104,35 @@ class TestStringMethods(unittest.TestCase):
 		print()
 		print("Testing variable.cnf")
 		filename = "../sample_cnf/variables.cnf"
-		solver = add_clauses(filename)
+		solver = add_arguments(filename,heuristic)
 		start = time.clock()
 		self.assertEqual(solver.solve_test(), 1)
 		end = time.clock()
 		print("Num times pick-branching", solver.get_num_pick_branch())
 		print("Time taken is", end - start)
+
+	def test_fish(self):
+		print()
+		print("Testing fish.cnf")
+		filename = "../sample_cnf/fish.cnf"
+		solver = add_arguments(filename,heuristic)
+		start = time.clock()
+		self.assertEqual(solver.solve_test(), 0)
+		end = time.clock()
+		print("Num times pick-branching", solver.get_num_pick_branch())
+		print("Time taken is", end - start)
+
+	def test_new(self):
+		print()
+		print("Testing April_29_2018_04_17_PM.cnf")
+		filename = "../sample_cnf/April_29_2018_04_17_PM.cnf"
+		solver = add_arguments(filename,heuristic)
+		start = time.clock()
+		self.assertEqual(solver.solve_test(), 0)
+		end = time.clock()
+		print("Num times pick-branching", solver.get_num_pick_branch())
+		print("Time taken is", end - start)
+
 
 
 if __name__ == '__main__':
