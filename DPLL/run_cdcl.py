@@ -8,7 +8,7 @@ def parse_input():
 	"""
 	parser = argparse.ArgumentParser()
 	parser.add_argument('file')
-	parser.add_argument('pick_branching',choices = ['random', 'random_frequency', '2-clause', 'DLIS','VSIDS_nodecay''VSIDS'], default = 'DLIS')
+	parser.add_argument('pick_branching',choices = ['random', 'random_frequency', '2-clause', 'DLIS','VSIDS_nodecay''VSIDS'], default = 'VSIDS')
 	return parser.parse_args().file, parser.parse_args().pick_branching
 
 filename, heuristic = parse_input()

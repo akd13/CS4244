@@ -3,7 +3,6 @@ from itertools import filterfalse
 import random
 import numpy as np
 import copy
-import operator
 
 
 def add_arguments(filename,heuristic):
@@ -224,26 +223,27 @@ class SATSolverCDCL:
 		return new_clause
 
 	def pick_branching_choice(self):
-		options = {'random': self.random,
-				   'random_frequency':self.random_frequency,
-				   '2-clause':self.two_clause,
+		options = {'random': self.random_choice(),
+				   'random_frequency':self.random_frequency(),
+				   '2-clause':self.two_clause_choice(),
 				   'DLIS':self.DLIS(),
-				   'DLIS_upgrade':self.VSIDS_nodecay(),
+				   'VSIDS_nodecay':self.VSIDS_nodecay(),
 				   'VSIDS': self.VSIDS(),
 				   }
 		return options[self.choice]
 
-	def random(self):
-		unassigned_list = []
+	def random_choice(self):
+		unassigned_list = {}
+		print(unassigned_list)
 		for i in range(0, self.literal_count):
 			if self.literals[i] == -1:
-				unassigned_list.append(i)
+				unassigned_list[i+1] = 1
 
-		choose = random.choice(unassigned_list)
-		if self.literal_polarity[choose] >= 0:
-			return choose+1
+		choose = random.choice(list(unassigned_list))
+		if self.literal_polarity[choose-1] >= 0:
+			return choose
 		else:
-			return -choose-1
+			return -choose
 
 	def random_frequency(self):
 		unassigned_list = []
@@ -253,13 +253,22 @@ class SATSolverCDCL:
 					unassigned_list.append(i)
 
 		if(unassigned_list):
-			choose = random.choice(unassigned_list)
-			if self.literal_polarity[choose] >= 0:
-				return choose + 1
+			variable = random.choice(unassigned_list)
+			if self.literal_polarity[variable] >= 0:
+				return variable + 1
 			else:
-				return -choose - 1
+				return -variable - 1
 		else:
 			return self.first_unassigned_variable()
+
+	def two_clause_choice(self):
+
+		if self.count != 0 and self.two_clause == self.two_clause_previous_state:
+			variable = self.random_frequency()
+			return variable
+		else:
+			variable = self.generate_two_clause_variable()
+			return variable
 
 	def DLIS(self):
 
@@ -283,7 +292,8 @@ class SATSolverCDCL:
 			if(self.literals[i]!=-1):
 				current_literal_count.pop(i+1)
 				current_literal_count.pop(-i-1)
-		max_count =max(current_literal_count.values())
+
+		max_count = max(current_literal_count.values())
 		keys_list = [k for k, v in current_literal_count.items() if v == max_count]
 
 		variable = random.choice(keys_list)
@@ -293,29 +303,18 @@ class SATSolverCDCL:
 			return self.first_unassigned_variable()
 
 	def VSIDS_nodecay(self):
-		unassigned_list = []
+		unassigned_list = {}
 		for i in range(0, self.literal_count):
 			if self.literals[i] == -1:
-				for j in range(0,self.literal_frequency[i]):
-					unassigned_list.append(i)
-		max = 0
-		pick_branched = 0
-		for lit in unassigned_list:
-			if(self.literal_frequency[lit]>=max):
-				max = self.literal_frequency[lit]
-				pick_branched = lit+1
-		if pick_branched!=self.previous_var:
-			return pick_branched
+					unassigned_list[i+1] = self.literal_frequency[i]
+
+		max_frequency_value = max(unassigned_list.values())
+		keys_list = [k for k, v in unassigned_list.items() if v == max_frequency_value]
+		variable = random.choice(keys_list)
+		if variable!=self.previous_var:
+			return variable
 		else:
 			return self.first_unassigned_variable()
-
-	def two_clause(self):
-
-		if self.count != 0 and self.two_clause == self.two_clause_previous_state:
-			return self.random_frequency()
-		else:
-			variable = self.generate_two_clause_variable()
-			return variable
 
 	def VSIDS(self):
 
@@ -327,7 +326,7 @@ class SATSolverCDCL:
 
 		max_decay_count = max(unassigned_list.values())
 		keys_list = [k for k, v in unassigned_list.items() if v == max_decay_count]
-		variable = max(unassigned_list.items(), key=operator.itemgetter(1))[0]
+		variable = random.choice(keys_list)
 		if(variable != self.previous_var):
 			return variable
 		else:
@@ -384,6 +383,7 @@ class SATSolverCDCL:
 
 		while not self.all_variable_assigned():
 			picked_variable = self.pick_branching_choice()
+			print(picked_variable)
 			self.previous_var = picked_variable
 			self.count += 1
 			decision_level += 1

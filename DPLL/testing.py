@@ -2,7 +2,7 @@ import unittest
 import time
 from DPLL.cdcl import add_arguments
 
-heuristic= "DLIS"
+heuristic= "random_frequency"
 
 class TestStringMethods(unittest.TestCase):
 
