@@ -39,7 +39,7 @@ def generate_cnf(N, L):
 	filename = datetime.datetime.now().strftime("%B_%d_%Y_%I_%M_%p")
 
 	with open(directory + filename + ".cnf", "w") as file:
-		file.write("c filename\n")
+		file.write("c {0}\n".format(filename))
 		file.write("p cnf {0} {1}\n".format(N, L))
 
 		# Create L number of clauses
