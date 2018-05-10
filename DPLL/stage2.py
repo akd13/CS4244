@@ -3,6 +3,7 @@ from itertools import combinations
 import os.path
 import pickle
 import random
+import gc
 
 N = 150
 
@@ -25,7 +26,11 @@ def parse_input():
 def check_negation(combi):
 	original_length = len(combi)
 	if original_length != len(list(set(map(abs, combi)))):
+		del original_length, combi
+		gc.collect()
 		return False
+	del original_length, combi
+	gc.collect()
 	return True
 
 filename, clause_file, K, R = parse_input()
@@ -44,8 +49,9 @@ if not os.path.isfile(clause_file):
 		combination = list(combination)
 		if check_negation(combination):
 			all_clauses.append(list(combination))
+		del combination
 	with open(clause_file, 'wb') as f:
-		pickle.dump(clause_file)
+		pickle.dump(all_clauses, f)
 else:
 	print("Clause File Exists")
 	with open(clause_file, 'rb') as f:
