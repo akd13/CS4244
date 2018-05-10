@@ -254,11 +254,14 @@ class SATSolverCDCL:
 				for j in range(0, self.literal_frequency[i]):
 					unassigned_list.append(i)
 
-		variable = random.choice(unassigned_list)
-		if self.literal_polarity[variable] >= 0:
-			return variable + 1
+		if(not unassigned_list):
+			return self.first_unassigned_variable()
 		else:
-			return -variable - 1
+			variable = random.choice(unassigned_list)
+			if self.literal_polarity[variable] >= 0:
+				return variable + 1
+			else:
+				return -variable - 1
 
 	def two_clause_choice(self):
 		"""

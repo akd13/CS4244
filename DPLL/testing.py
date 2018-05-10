@@ -79,16 +79,16 @@ class TestStringMethods(unittest.TestCase):
 		print("Time taken is", end - start)
 
 
-	# def test_fish(self):
-	# 	print()
-	# 	print("Testing fish.cnf")
-	# 	filename = "../sample_cnf/fish.cnf"
-	# 	solver = add_arguments(filename,heuristic)
-	# 	start = time.clock()
-	# 	self.assertEqual(solver.solve_test(), 0)
-	# 	end = time.clock()
-	# 	print("Num times pick-branching", solver.get_num_pick_branch())
-	# 	print("Time taken is", end - start)
+	def test_einstein(self):
+		print()
+		print("Testing einstein.cnf")
+		filename = "../sample_cnf/einstein.cnf"
+		solver = add_arguments(filename,heuristic)
+		start = time.clock()
+		self.assertEqual(solver.solve_test(), 'satisfied')
+		end = time.clock()
+		print("Num times pick-branching", solver.get_num_pick_branch())
+		print("Time taken is", end - start)
 
 
 if __name__ == '__main__':
