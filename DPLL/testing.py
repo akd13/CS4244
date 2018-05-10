@@ -2,7 +2,7 @@ import unittest
 import time
 from DPLL.cdcl import add_arguments
 
-heuristic= "random_frequency"
+heuristic= "VSIDS_nodecay"
 
 class TestStringMethods(unittest.TestCase):
 
@@ -33,57 +33,13 @@ class TestStringMethods(unittest.TestCase):
 		print("Num times pick-branching", solver.get_num_pick_branch())
 		print("Time taken is", end - start)
 
-	def test_test(self):
+	def test_new(self):
 		print()
-		print("Testing test.cnf")
-		filename = "../sample_cnf/test.cnf"
+		print("Generated.cnf")
+		filename = "../sample_cnf/Generated.cnf"
 		solver = add_arguments(filename,heuristic)
 		start = time.clock()
 		self.assertEqual(solver.solve_test(), 0)
-		end = time.clock()
-		print("Num times pick-branching", solver.get_num_pick_branch())
-		print("Time taken is", end - start)
-
-	def test_test1(self):
-		print()
-		print("Testing test1.cnf")
-		filename = "../sample_cnf/test1.cnf"
-		solver = add_arguments(filename,heuristic)
-		start = time.clock()
-		self.assertEqual(solver.solve_test(), 0)
-		end = time.clock()
-		print("Num times pick-branching", solver.get_num_pick_branch())
-		print("Time taken is", end - start)
-
-	def test_unsat(self):
-		print()
-		print("Testing unsat.cnf")
-		filename = "../sample_cnf/unsat.cnf"
-		solver = add_arguments(filename,heuristic)
-		start = time.clock()
-		self.assertEqual(solver.solve_test(), 1)
-		end = time.clock()
-		print("Num times pick-branching", solver.get_num_pick_branch())
-		print("Time taken is", end - start)
-
-	def test_unsat1(self):
-		print()
-		print("Testing unsat1.cnf")
-		filename = "../sample_cnf/unsat1.cnf"
-		solver = add_arguments(filename,heuristic)
-		start = time.clock()
-		self.assertEqual(solver.solve_test(), 1)
-		end = time.clock()
-		print("Num times pick-branching", solver.get_num_pick_branch())
-		print("Time taken is", end - start)
-
-	def test_unsat_complex(self):
-		print()
-		print("Testing unsat_complex.cnf")
-		filename = "../sample_cnf/unsat_complex.cnf"
-		solver = add_arguments(filename,heuristic)
-		start = time.clock()
-		self.assertEqual(solver.solve_test(), 1)
 		end = time.clock()
 		print("Num times pick-branching", solver.get_num_pick_branch())
 		print("Time taken is", end - start)
@@ -99,10 +55,10 @@ class TestStringMethods(unittest.TestCase):
 		print("Num times pick-branching", solver.get_num_pick_branch())
 		print("Time taken is", end - start)
 
-	def test_variables(self):
+	def test_unsat_complex_1(self):
 		print()
-		print("Testing variable.cnf")
-		filename = "../sample_cnf/variables.cnf"
+		print("Testing unsat_complex_1.cnf")
+		filename = "../sample_cnf/unsat_complex_1.cnf"
 		solver = add_arguments(filename,heuristic)
 		start = time.clock()
 		self.assertEqual(solver.solve_test(), 1)
@@ -110,28 +66,28 @@ class TestStringMethods(unittest.TestCase):
 		print("Num times pick-branching", solver.get_num_pick_branch())
 		print("Time taken is", end - start)
 
-	def test_fish(self):
+	def test_unsat_complex_2(self):
 		print()
-		print("Testing fish.cnf")
-		filename = "../sample_cnf/fish.cnf"
+		print("Testing unsat_complex_2.cnf")
+		filename = "../sample_cnf/unsat_complex_2.cnf"
 		solver = add_arguments(filename,heuristic)
 		start = time.clock()
-		self.assertEqual(solver.solve_test(), 0)
+		self.assertEqual(solver.solve_test(), 1)
 		end = time.clock()
 		print("Num times pick-branching", solver.get_num_pick_branch())
 		print("Time taken is", end - start)
 
-	def test_new(self):
-		print()
-		print("Testing April_29_2018_04_17_PM.cnf")
-		filename = "../sample_cnf/April_29_2018_04_17_PM.cnf"
-		solver = add_arguments(filename,heuristic)
-		start = time.clock()
-		self.assertEqual(solver.solve_test(), 0)
-		end = time.clock()
-		print("Num times pick-branching", solver.get_num_pick_branch())
-		print("Time taken is", end - start)
 
+	# def test_fish(self):
+	# 	print()
+	# 	print("Testing fish.cnf")
+	# 	filename = "../sample_cnf/fish.cnf"
+	# 	solver = add_arguments(filename,heuristic)
+	# 	start = time.clock()
+	# 	self.assertEqual(solver.solve_test(), 0)
+	# 	end = time.clock()
+	# 	print("Num times pick-branching", solver.get_num_pick_branch())
+	# 	print("Time taken is", end - start)
 
 
 if __name__ == '__main__':

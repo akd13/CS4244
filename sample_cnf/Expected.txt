@@ -1,8 +1,0 @@
-hoge.cnf SAT
-input.cnf SAT
-test.cnf SAT
-test1.cnf SAT
-unsat.cnf UNSAT
-unsat1.cnf UNSAT
-unsat_complex.cnf UNSAT
-variables.cnf UNSAT
