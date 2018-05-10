@@ -28,8 +28,6 @@ def add_arguments(filename, heuristic):
 			raw_clause = clause_input_cnf.group(0).split()
 			raw_clause.pop()
 			clause = [int(numeric_string) for numeric_string in raw_clause]
-			# for lit in clause:
-			# 	set_literals.add(abs(lit))
 			cnf.append(clause)
 	solver = SATSolverCDCL(cnf, num_variables, heuristic)
 	file.close()
@@ -41,22 +39,22 @@ class SATSolverCDCL:
 	def __init__(self, cnf, num_variables, heuristic):
 		self.cnf = cnf
 		self.count = 0
-		self.literals = []
+		self.literals = np.full(num_variables, -1)
 		self.literal_list_per_clause = []
-		self.variable_frequency = []
+		self.variable_frequency = np.zeros(num_variables, dtype=int)
 		self.literal_count = 0
 		self.clause_count = 0
 		self.conflict_antecedent = -1
-		self.literal_decision_level = []
-		self.literal_antecedent = []
+		self.literal_decision_level = np.full(num_variables, -1)
+		self.literal_antecedent = np.full(num_variables, -1)
 		self.assigned_literal_count = 0
 		self.already_unsatisfied = False
 		self.pick_counter = 0
 		self.previous_var = None
 
 		# Heuristics for pick-branching
-		self.literal_frequency = []
-		self.literal_polarity = []
+		self.literal_frequency = np.zeros(num_variables, dtype=int)
+		self.literal_polarity = np.zeros(num_variables, dtype=int)
 		self.two_clause = []
 		self.two_clause_previous_state = []
 		self.vsids_frequency = {}
@@ -68,11 +66,6 @@ class SATSolverCDCL:
 				self.already_unsatisfied = True
 
 		for i in range(num_variables):
-			self.literals.append(-1)
-			self.literal_decision_level.append(-1)
-			self.literal_antecedent.append(-1)
-			self.literal_frequency.append(0)
-			self.literal_polarity.append(0)
 			self.vsids_frequency[-i-1] = 0
 			self.vsids_frequency[i+1] = 0
 
@@ -105,7 +98,7 @@ class SATSolverCDCL:
 				satisfied_flag = False
 
 				for j, lit in enumerate(lit_list):
-					literal_index = self.literal_to_variable_index(lit)
+					literal_index = abs(lit)-1
 					if self.literals[literal_index] == -1:
 						unset_count += 1
 						last_unset_literal = j
@@ -136,7 +129,7 @@ class SATSolverCDCL:
 		return 'unresolved'
 
 	def assign_literal(self, variable, decision_level, antecedent):
-		literal = self.literal_to_variable_index(variable)
+		literal = abs(variable)-1
 		value = 1 if variable > 0 else 0
 		self.literals[literal] = value
 		self.literal_decision_level[literal] = decision_level
@@ -152,12 +145,6 @@ class SATSolverCDCL:
 		self.literal_frequency[literal_index] = self.variable_frequency[literal_index]
 		self.assigned_literal_count -= 1
 
-	def literal_to_variable_index(self, variable):
-		if variable > 0:
-			return variable - 1
-		else:
-			return -variable - 1
-
 	def conflict_analysis_and_backtrack(self, decision_level):
 		learnt_clause = self.literal_list_per_clause[self.conflict_antecedent]
 		conflict_decision_level = decision_level
@@ -166,7 +153,7 @@ class SATSolverCDCL:
 		while True:
 			this_level_count = 0
 			for l in learnt_clause:
-				literal = self.literal_to_variable_index(l)
+				literal = abs(l)-1
 				if self.literal_decision_level[literal] == conflict_decision_level:
 					this_level_count += 1
 
@@ -186,7 +173,7 @@ class SATSolverCDCL:
 		self.initiate_vsids_decay()
 
 		for lit in learnt_clause:
-			literal_index = self.literal_to_variable_index(lit)
+			literal_index = abs(lit)-1
 			update = 1 if lit > 0 else -1
 			self.literal_polarity[literal_index] += update
 			if self.literal_frequency[literal_index] != -1:
@@ -197,7 +184,7 @@ class SATSolverCDCL:
 		self.clause_count += 1
 		backtracked_decision_level = 0
 		for lit in learnt_clause:
-			literal_index = self.literal_to_variable_index(lit)
+			literal_index = abs(lit)-1
 			decision_level_here = self.literal_decision_level[literal_index]
 			if decision_level_here != conflict_decision_level and decision_level_here > backtracked_decision_level:
 				backtracked_decision_level = decision_level_here
