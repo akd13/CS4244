@@ -22,7 +22,7 @@ def generate_clause(N, num_lits):
 	return clause
 
 
-def generate_cnf(N, L):
+def generate_cnf(N, L, num):
 	"""
 		Generates CNF formulas and store them in DIMACs format in specified file path
 		Input: N number of variables, L number of clauses to be produced
@@ -36,7 +36,8 @@ def generate_cnf(N, L):
 		os.mkdir(directory)
 
 	# Use current time as filename
-	filename = datetime.datetime.now().strftime("%B_%d_%Y_%I_%M_%p")
+	# filename = datetime.datetime.now().strftime("%B_%d_%Y_%I_%M_%p")
+	filename = str(num)
 
 	with open(directory + filename + ".cnf", "w") as file:
 		file.write("c filename\n")
@@ -50,4 +51,5 @@ def generate_cnf(N, L):
 			file.write("0\n")
 
 
-generate_cnf(150, 500)
+for i in range(50):
+	generate_cnf(100, 150, i)
