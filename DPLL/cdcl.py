@@ -43,12 +43,7 @@ class SATSolverCDCL:
 		self.count = 0
 		self.literals = []
 		self.literal_list_per_clause = []
-		self.literal_frequency = []
-		self.literal_polarity = []
-		self.vsids_frequency = {}
 		self.variable_frequency = []
-		self.two_clause = []
-		self.two_clause_previous_state = []
 		self.literal_count = 0
 		self.clause_count = 0
 		self.kappa_antecedent = -1
@@ -58,9 +53,17 @@ class SATSolverCDCL:
 		self.already_unsatisfied = False
 		self.pick_counter = 0
 		self.previous_var = None
-		self.choice = heuristic
+
 		# Enum of exit states
 		self.RetVal = {'satisfied': 0, 'unsatisfied': 1, 'unresolved': 2}
+
+		#Heuristics for pick-branching
+		self.literal_frequency = []
+		self.literal_polarity = []
+		self.two_clause = []
+		self.two_clause_previous_state = []
+		self.vsids_frequency = {}
+		self.choice = heuristic
 
 		for clause in self.cnf:
 			self.literal_list_per_clause.append(clause)
@@ -234,7 +237,6 @@ class SATSolverCDCL:
 
 	def random_choice(self):
 		unassigned_list = {}
-		print(unassigned_list)
 		for i in range(0, self.literal_count):
 			if self.literals[i] == -1:
 				unassigned_list[i+1] = 1
@@ -383,7 +385,6 @@ class SATSolverCDCL:
 
 		while not self.all_variable_assigned():
 			picked_variable = self.pick_branching_choice()
-			print(picked_variable)
 			self.previous_var = picked_variable
 			self.count += 1
 			decision_level += 1
