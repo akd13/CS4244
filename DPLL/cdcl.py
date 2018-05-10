@@ -86,48 +86,38 @@ class SATSolverCDCL:
 		self.clause_count = len(self.cnf)
 
 	def unit_propagate(self, decision_level):
-		last_unset_literal = -1
 
 		while True:
 			unit_clause_found = False
-			for list_id, lit_list in enumerate(self.clause_list):
-				false_count = 0
-				unset_count = 0
-				satisfied_flag = False
+			for id,clause in enumerate(self.clause_list):
+				assigned = 0
+				unit_clause_unassigned_lit = None
+				conflict = True
+				unassigned_clause = True
+				for lit in clause:
+					if(self.literals[abs(lit)-1]!=-1):
+						assigned += 1
+						if(self.literals[abs(lit)-1]>0 and lit>0) or (self.literals[abs(lit)-1]==0 and lit<0):
+							conflict = False
+							unassigned_clause = False
+					if(self.literals[abs(lit)-1]==-1):
+						unit_clause_unassigned_lit = lit
 
-				for lit_id, lit in enumerate(lit_list):
-					literal_id = abs(lit)-1
-					if self.literals[literal_id] == -1:
-						unset_count += 1
-						last_unset_literal_id = lit_id
-					elif self.literals[literal_id] == 0 and lit > 0 or self.literals[literal_id] == 1 and lit < 0:
-						false_count += 1
-					else:
-						satisfied_flag = True
-						break
-
-				if satisfied_flag:
-					continue
-
-				if unset_count == 1:
-					self.assign_literal(self.clause_list[list_id][last_unset_literal_id],
-										decision_level,
-										list_id)
+				if(len(clause)==assigned+1 and unassigned_clause == True): #all but one variable is assigned, unit clause found
+					self.assign_literal(unit_clause_unassigned_lit,decision_level,id)
 					unit_clause_found = True
 					break
-				elif false_count == len(self.clause_list[list_id]):
-					self.conflict_antecedent = list_id
-					del last_unset_literal_id, false_count, unset_count, satisfied_flag, literal_id, unit_clause_found
-					return 'unsatisfied'
 
-				del list_id, lit_list
+				if(len(clause) == assigned): #all variables assigned, do satisfiability check
+					if(conflict == True):
+						self.conflict_antecedent = id
+						return 'unsatisfied'
 
-			if unit_clause_found is False:
+			if(unit_clause_found == False):
 				break
 
-		self.conflict_antecedent = -1
 
-		del last_unset_literal, false_count, unset_count, satisfied_flag, literal_id, unit_clause_found
+		self.conflict_antecedent = -1
 		return 'unresolved'
 
 	def assign_literal(self, variable, decision_level, antecedent):
