@@ -5,7 +5,7 @@ import numpy as np
 import copy
 
 
-def add_arguments(filename,heuristic):
+def add_arguments(filename, heuristic):
 	"""
 	Check validity of each clause and add to clause set
 	"""
@@ -22,7 +22,7 @@ def add_arguments(filename,heuristic):
 			num_variables = int(line.split()[2])
 
 		if comment is None and clause_input_cnf is None:
-			print("Invalid input:",line)
+			print("Invalid input:", line)
 
 		elif clause_input_cnf is not None:
 			raw_clause = clause_input_cnf.group(0).split()
@@ -31,14 +31,14 @@ def add_arguments(filename,heuristic):
 			# for lit in clause:
 			# 	set_literals.add(abs(lit))
 			cnf.append(clause)
-	solver = SATSolverCDCL(cnf, num_variables,heuristic)
+	solver = SATSolverCDCL(cnf, num_variables, heuristic)
 	file.close()
 	del file, filename, num_variables, comment, header, clause_input_cnf, raw_clause
 	return solver
 
 
 class SATSolverCDCL:
-	def __init__(self, cnf, num_variables,heuristic):
+	def __init__(self, cnf, num_variables, heuristic):
 		self.cnf = cnf
 		self.count = 0
 		self.literals = []
@@ -46,7 +46,7 @@ class SATSolverCDCL:
 		self.variable_frequency = []
 		self.literal_count = 0
 		self.clause_count = 0
-		self.kappa_antecedent = -1
+		self.conflict_antecedent = -1
 		self.literal_decision_level = []
 		self.literal_antecedent = []
 		self.assigned_literal_count = 0
@@ -54,10 +54,7 @@ class SATSolverCDCL:
 		self.pick_counter = 0
 		self.previous_var = None
 
-		# Enum of exit states
-		self.RetVal = {'satisfied': 0, 'unsatisfied': 1, 'unresolved': 2}
-
-		#Heuristics for pick-branching
+		# Heuristics for pick-branching
 		self.literal_frequency = []
 		self.literal_polarity = []
 		self.two_clause = []
@@ -79,7 +76,6 @@ class SATSolverCDCL:
 			self.vsids_frequency[-i-1] = 0
 			self.vsids_frequency[i+1] = 0
 
-
 		for clause in self.cnf:
 			if len(clause) == 2:
 				self.two_clause.append(clause)
@@ -87,11 +83,11 @@ class SATSolverCDCL:
 				if literal > 0:
 					self.literal_frequency[literal-1] += 1
 					self.literal_polarity[literal-1] += 1
-					self.vsids_frequency[literal]+=1
+					self.vsids_frequency[literal] += 1
 				else:
 					self.literal_frequency[-literal-1] += 1
 					self.literal_polarity[-literal-1] -= 1
-					self.vsids_frequency[literal]+=1
+					self.vsids_frequency[literal] += 1
 
 		self.variable_frequency = [abs(num) for num in self.literal_frequency]
 		self.two_clause_previous_state = self.two_clause
@@ -127,17 +123,17 @@ class SATSolverCDCL:
 					unit_clause_found = True
 					break
 				elif false_count == len(self.literal_list_per_clause[i]):
-					self.kappa_antecedent = i
+					self.conflict_antecedent = i
 					del last_unset_literal, false_count, unset_count, satisfied_flag, literal_index, unit_clause_found
-					return self.RetVal['unsatisfied']
+					return 'unsatisfied'
 
 			if unit_clause_found is False:
 				break
 
-		self.kappa_antecedent = -1
+		self.conflict_antecedent = -1
 
 		del last_unset_literal, false_count, unset_count, satisfied_flag, literal_index, unit_clause_found
-		return self.RetVal['unresolved']
+		return 'unresolved'
 
 	def assign_literal(self, variable, decision_level, antecedent):
 		literal = self.literal_to_variable_index(variable)
@@ -163,7 +159,7 @@ class SATSolverCDCL:
 			return -variable - 1
 
 	def conflict_analysis_and_backtrack(self, decision_level):
-		learnt_clause = self.literal_list_per_clause[self.kappa_antecedent]
+		learnt_clause = self.literal_list_per_clause[self.conflict_antecedent]
 		conflict_decision_level = decision_level
 		resolver_literal = None
 
@@ -196,7 +192,7 @@ class SATSolverCDCL:
 			if self.literal_frequency[literal_index] != -1:
 				self.literal_frequency[literal_index] += 1
 			self.variable_frequency[literal_index] += 1
-			self.vsids_frequency[lit]+=2
+			self.vsids_frequency[lit] += 2
 
 		self.clause_count += 1
 		backtracked_decision_level = 0
@@ -227,10 +223,10 @@ class SATSolverCDCL:
 
 	def pick_branching_choice(self):
 		options = {'random': self.random_choice(),
-				   'random_frequency':self.random_frequency(),
-				   '2-clause':self.two_clause_choice(),
-				   'DLIS':self.DLIS(),
-				   'VSIDS_nodecay':self.VSIDS_nodecay(),
+				   'random_frequency': self.random_frequency(),
+				   '2-clause': self.two_clause_choice(),
+				   'DLIS': self.DLIS(),
+				   'VSIDS_nodecay': self.VSIDS_nodecay(),
 				   'VSIDS': self.VSIDS(),
 				   }
 		return options[self.choice]
@@ -254,7 +250,7 @@ class SATSolverCDCL:
 				for j in range(0,self.literal_frequency[i]):
 					unassigned_list.append(i)
 
-		if(unassigned_list):
+		if unassigned_list:
 			variable = random.choice(unassigned_list)
 			if self.literal_polarity[variable] >= 0:
 				return variable + 1
@@ -264,7 +260,6 @@ class SATSolverCDCL:
 			return self.first_unassigned_variable()
 
 	def two_clause_choice(self):
-
 		if self.count != 0 and self.two_clause == self.two_clause_previous_state:
 			variable = self.random_frequency()
 			return variable
@@ -274,7 +269,7 @@ class SATSolverCDCL:
 
 	def DLIS(self):
 
-		if(self.count>self.literal_count/2):
+		if self.count>self.literal_count/2:
 			return self.VSIDS_nodecay()
 
 		unresolved_clauses = copy.deepcopy(self.literal_list_per_clause)
@@ -284,14 +279,14 @@ class SATSolverCDCL:
 
 		for clause in unresolved_clauses:
 			for lit in clause:
-				if(lit>0 and self.literals[lit-1]==1) or (lit<0 and self.literals[-lit-1]==0):
+				if(lit > 0 and self.literals[lit-1] == 1) or (lit < 0 and self.literals[-lit-1] == 0):
 						unresolved_clauses.remove(clause)
 						break
 		for clause in unresolved_clauses:
 			for lit in clause:
 				current_literal_count[lit] += 1
-		for i in range(0,self.literal_count):
-			if(self.literals[i]!=-1):
+		for i in range(0, self.literal_count):
+			if self.literals[i] != -1:
 				current_literal_count.pop(i+1)
 				current_literal_count.pop(-i-1)
 
@@ -299,7 +294,7 @@ class SATSolverCDCL:
 		keys_list = [k for k, v in current_literal_count.items() if v == max_count]
 
 		variable = random.choice(keys_list)
-		if(variable != self.previous_var):
+		if variable != self.previous_var:
 			return variable
 		else:
 			return self.first_unassigned_variable()
@@ -313,7 +308,7 @@ class SATSolverCDCL:
 		max_frequency_value = max(unassigned_list.values())
 		keys_list = [k for k, v in unassigned_list.items() if v == max_frequency_value]
 		variable = random.choice(keys_list)
-		if variable!=self.previous_var:
+		if variable != self.previous_var:
 			return variable
 		else:
 			return self.first_unassigned_variable()
@@ -329,7 +324,7 @@ class SATSolverCDCL:
 		max_decay_count = max(unassigned_list.values())
 		keys_list = [k for k, v in unassigned_list.items() if v == max_decay_count]
 		variable = random.choice(keys_list)
-		if(variable != self.previous_var):
+		if variable != self.previous_var:
 			return variable
 		else:
 			return self.first_unassigned_variable()
@@ -344,7 +339,7 @@ class SATSolverCDCL:
 		two_clause_lit_frequency = np.zeros(self.literal_count+1)
 		for clause in self.two_clause:
 			for l in clause:
-				two_clause_lit_frequency[abs(l)]+=1
+				two_clause_lit_frequency[abs(l)] += 1
 		max_value = np.amax(two_clause_lit_frequency)
 		indices = [i for i, j in enumerate(two_clause_lit_frequency) if j == max_value]
 		return random.choice(indices)
@@ -355,20 +350,6 @@ class SATSolverCDCL:
 				return False
 		return True
 
-	def show_result(self, result_status):
-		if result_status == self.RetVal['satisfied']:
-			print("SAT")
-			for i in range(len(self.literals)):
-				if self.literals[i] == -1:
-					print(i+1,":0 or 1")
-				elif self.literals[i] == 0:
-					print((i+1),":",0)
-				else:
-					print(i+1,":",1)
-
-		else:
-			print("UNSAT")
-
 	def CDCL(self):
 		"""
 		To perform the CDCL algo
@@ -376,10 +357,10 @@ class SATSolverCDCL:
 		"""
 		decision_level = 0
 		if self.already_unsatisfied:
-			return self.RetVal['unsatisfied']
+			return 'unsatisfied'
 
 		unit_propagate_result = self.unit_propagate(decision_level)
-		if unit_propagate_result == self.RetVal['unsatisfied']:
+		if unit_propagate_result == 'unsatisfied':
 			del decision_level
 			return unit_propagate_result
 
@@ -392,7 +373,7 @@ class SATSolverCDCL:
 
 			while True:
 				unit_propagate_result = self.unit_propagate(decision_level)
-				if unit_propagate_result == self.RetVal['unsatisfied']:
+				if unit_propagate_result == 'unsatisfied':
 					if decision_level == 0:
 						return unit_propagate_result
 
@@ -400,7 +381,7 @@ class SATSolverCDCL:
 				else:
 					break
 		del decision_level, unit_propagate_result, picked_variable
-		return self.RetVal['satisfied']
+		return 'satisfied'
 
 	def solve(self):
 		"""
@@ -408,7 +389,17 @@ class SATSolverCDCL:
 		:return: void
 		"""
 		result_status = self.CDCL()
-		self.show_result(result_status)
+		if result_status == 'satisfied':
+			print("SAT")
+			for i in range(len(self.literals)):
+				if self.literals[i] == -1:
+					print(i+1, ":0 or 1")
+				elif self.literals[i] == 0:
+					print((i+1), ":", 0)
+				else:
+					print(i+1, ":", 1)
+		else:
+			print("UNSAT")
 
 	def solve_test(self):
 		"""
