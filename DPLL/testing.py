@@ -4,6 +4,7 @@ from DPLL.cdcl import add_arguments
 
 heuristic = "VSIDS_nodecay"
 
+
 class TestStringMethods(unittest.TestCase):
 
 	def test_upper(self):

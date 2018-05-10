@@ -47,9 +47,7 @@ class SATSolverCDCL:
 		self.conflict_antecedent = -1
 		self.literal_decision_level = np.full(num_variables, -1)
 		self.literal_antecedent = np.full(num_variables, -1)
-		self.assigned_literal_count = 0
-		self.already_unsatisfied = False
-		self.pick_counter = 0
+		self.unsatisfied = False
 		self.previous_var = None
 
 		# Heuristics for pick-branching
@@ -61,9 +59,9 @@ class SATSolverCDCL:
 		self.choice = heuristic
 
 		for clause in self.cnf:
-			self.literal_list_per_clause.append(clause)
 			if not clause:
-				self.already_unsatisfied = True
+				self.unsatisfied = True
+			self.literal_list_per_clause.append(clause)
 
 		for i in range(num_variables):
 			self.vsids_frequency[-i-1] = 0
@@ -120,6 +118,8 @@ class SATSolverCDCL:
 					del last_unset_literal, false_count, unset_count, satisfied_flag, literal_index, unit_clause_found
 					return 'unsatisfied'
 
+				del i, lit_list
+
 			if unit_clause_found is False:
 				break
 
@@ -135,7 +135,6 @@ class SATSolverCDCL:
 		self.literal_decision_level[literal] = decision_level
 		self.literal_antecedent[literal] = antecedent
 		self.literal_frequency[literal] = -1
-		self.assigned_literal_count += 1
 		del literal, value
 
 	def unassign_literal(self, literal_index):
@@ -143,7 +142,6 @@ class SATSolverCDCL:
 		self.literal_decision_level[literal_index] = -1
 		self.literal_antecedent[literal_index] = -1
 		self.literal_frequency[literal_index] = self.variable_frequency[literal_index]
-		self.assigned_literal_count -= 1
 
 	def conflict_analysis_and_backtrack(self, decision_level):
 		learnt_clause = self.literal_list_per_clause[self.conflict_antecedent]
@@ -159,11 +157,12 @@ class SATSolverCDCL:
 
 				if self.literal_decision_level[literal] == conflict_decision_level and self.literal_antecedent[literal] != -1:
 					resolver_literal = literal
+				del l
 
 			if this_level_count == 1:
 				break
 
-			learnt_clause = self.resolve(learnt_clause, resolver_literal)
+			learnt_clause = self.resolution(learnt_clause, resolver_literal)
 
 		self.literal_list_per_clause.append(learnt_clause)
 
@@ -180,6 +179,7 @@ class SATSolverCDCL:
 				self.literal_frequency[literal_index] += 1
 			self.variable_frequency[literal_index] += 1
 			self.vsids_frequency[lit] += 2
+			del lit, update, literal_index
 
 		self.clause_count += 1
 		backtracked_decision_level = 0
@@ -188,24 +188,26 @@ class SATSolverCDCL:
 			decision_level_here = self.literal_decision_level[literal_index]
 			if decision_level_here != conflict_decision_level and decision_level_here > backtracked_decision_level:
 				backtracked_decision_level = decision_level_here
+			del lit
 
 		for i, lit in enumerate(self.literals):
 			if self.literal_decision_level[i] > backtracked_decision_level:
 				self.unassign_literal(i)
+			del i, lit
 
-		del learnt_clause, conflict_decision_level, resolver_literal, this_level_count, literal, l, lit, update, literal_index, i
+		del learnt_clause, conflict_decision_level, resolver_literal, this_level_count
 		return backtracked_decision_level
 
 	def initiate_vsids_decay(self):
 		decay_constant = np.random.uniform()
 		self.vsids_frequency.update((x, y * decay_constant) for x, y in self.vsids_frequency.items())
 
-	def resolve(self, input_clause, literal):
-		second_input = self.literal_list_per_clause[self.literal_antecedent[literal]]
-		new_clause = input_clause + second_input
+	def resolution(self, learnt_clause, literal):
+		conflict_clause = self.literal_list_per_clause[self.literal_antecedent[literal]]
+		new_clause = learnt_clause + conflict_clause
 		new_clause[:] = filterfalse(lambda x: x == literal + 1 or x == -literal - 1, new_clause)
-		new_clause = sorted(list(set(new_clause)))
-		del second_input
+		new_clause = list(set(new_clause))
+		del conflict_clause
 		return new_clause
 
 	def pick_branching_choice(self):
@@ -214,8 +216,7 @@ class SATSolverCDCL:
 				   '2-clause': self.two_clause_choice(),
 				   'DLIS': self.DLIS(),
 				   'VSIDS_nodecay': self.VSIDS_nodecay(),
-				   'VSIDS': self.VSIDS(),
-				   }
+				   'VSIDS': self.VSIDS()}
 		return options[self.choice]
 
 	def random_choice(self):
@@ -234,7 +235,7 @@ class SATSolverCDCL:
 		unassigned_list = []
 		for i in range(0, self.literal_count):
 			if self.literals[i] == -1:
-				for j in range(0,self.literal_frequency[i]):
+				for j in range(0, self.literal_frequency[i]):
 					unassigned_list.append(i)
 
 		if unassigned_list:
@@ -256,11 +257,11 @@ class SATSolverCDCL:
 
 	def DLIS(self):
 
-		if self.count>self.literal_count/2:
+		if self.count > self.literal_count/2:
 			return self.VSIDS_nodecay()
 
 		unresolved_clauses = copy.deepcopy(self.literal_list_per_clause)
-		literal_list = range(-self.literal_count,self.literal_count+1)
+		literal_list = range(-self.literal_count, self.literal_count+1)
 		current_literal_count = dict.fromkeys(literal_list, 0)
 		current_literal_count.pop(0)
 
@@ -331,7 +332,7 @@ class SATSolverCDCL:
 		indices = [i for i, j in enumerate(two_clause_lit_frequency) if j == max_value]
 		return random.choice(indices)
 
-	def all_variable_assigned(self):
+	def check_all_assigned(self):
 		for i in range(0, self.literal_count):
 			if self.literals[i] == -1:
 				return False
@@ -343,7 +344,7 @@ class SATSolverCDCL:
 		:return: result state (int)
 		"""
 		decision_level = 0
-		if self.already_unsatisfied:
+		if self.unsatisfied:
 			return 'unsatisfied'
 
 		unit_propagate_result = self.unit_propagate(decision_level)
@@ -351,7 +352,7 @@ class SATSolverCDCL:
 			del decision_level
 			return unit_propagate_result
 
-		while not self.all_variable_assigned():
+		while not self.check_all_assigned():
 			picked_variable = self.pick_branching_choice()
 			self.previous_var = picked_variable
 			self.count += 1
@@ -367,7 +368,8 @@ class SATSolverCDCL:
 					decision_level = self.conflict_analysis_and_backtrack(decision_level)
 				else:
 					break
-		del decision_level, unit_propagate_result, picked_variable
+			del picked_variable
+		del decision_level, unit_propagate_result
 		return 'satisfied'
 
 	def solve(self):
