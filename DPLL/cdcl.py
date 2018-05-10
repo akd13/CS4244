@@ -40,7 +40,7 @@ class SATSolverCDCL:
 		self.cnf = cnf
 		self.count = 0
 		self.literals = np.full(num_variables, -1)
-		self.literal_list_per_clause = []
+		self.clause_list = []
 		self.variable_frequency = np.zeros(num_variables, dtype=int)
 		self.literal_count = 0
 		self.clause_count = 0
@@ -61,7 +61,7 @@ class SATSolverCDCL:
 		for clause in self.cnf:
 			if not clause:
 				self.unsatisfied = True
-			self.literal_list_per_clause.append(clause)
+			self.clause_list.append(clause)
 
 		for i in range(num_variables):
 			self.vsids_frequency[-i-1] = 0
@@ -90,7 +90,7 @@ class SATSolverCDCL:
 
 		while True:
 			unit_clause_found = False
-			for list_id, lit_list in enumerate(self.literal_list_per_clause):
+			for list_id, lit_list in enumerate(self.clause_list):
 				false_count = 0
 				unset_count = 0
 				satisfied_flag = False
@@ -110,12 +110,12 @@ class SATSolverCDCL:
 					continue
 
 				if unset_count == 1:
-					self.assign_literal(self.literal_list_per_clause[list_id][last_unset_literal_id],
+					self.assign_literal(self.clause_list[list_id][last_unset_literal_id],
 										decision_level,
 										list_id)
 					unit_clause_found = True
 					break
-				elif false_count == len(self.literal_list_per_clause[list_id]):
+				elif false_count == len(self.clause_list[list_id]):
 					self.conflict_antecedent = list_id
 					del last_unset_literal_id, false_count, unset_count, satisfied_flag, literal_id, unit_clause_found
 					return 'unsatisfied'
@@ -140,7 +140,7 @@ class SATSolverCDCL:
 		del literal_id, value
 
 	def conflict_backtrack(self, conflict_decision_level):
-		learnt_clause = self.literal_list_per_clause[self.conflict_antecedent]
+		learnt_clause = self.clause_list[self.conflict_antecedent]
 		resolver_literal = None
 
 		while True:
@@ -160,7 +160,7 @@ class SATSolverCDCL:
 
 			learnt_clause = self.resolution(learnt_clause, resolver_literal)
 
-		self.literal_list_per_clause.append(learnt_clause)
+		self.clause_list.append(learnt_clause)
 
 		if len(learnt_clause) == 2:
 			self.two_clause.append(learnt_clause)
@@ -207,7 +207,7 @@ class SATSolverCDCL:
 		Resolution of
 		:return:
 		"""
-		conflict_clause = self.literal_list_per_clause[self.literal_antecedent[literal]]
+		conflict_clause = self.clause_list[self.literal_antecedent[literal]]
 		new_clause = learnt_clause + conflict_clause
 		new_clause[:] = filterfalse(lambda x: x == literal + 1 or x == -literal - 1, new_clause)
 		new_clause = list(set(new_clause))
@@ -283,7 +283,7 @@ class SATSolverCDCL:
 		if self.count > self.literal_count/2:
 			return self.VSIDS_nodecay()
 
-		unresolved_clauses = copy.deepcopy(self.literal_list_per_clause)
+		unresolved_clauses = copy.deepcopy(self.clause_list)
 		literal_list = range(-self.literal_count, self.literal_count+1)
 		current_literal_count = dict.fromkeys(literal_list, 0)
 		current_literal_count.pop(0)

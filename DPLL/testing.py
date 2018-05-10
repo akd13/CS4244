@@ -2,7 +2,7 @@ import unittest
 import time
 from DPLL.cdcl import add_arguments
 
-heuristic = "VSIDS_nodecay"
+heuristic = "random"
 
 
 class TestStringMethods(unittest.TestCase):
