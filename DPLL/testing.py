@@ -2,7 +2,8 @@ import unittest
 import time
 from DPLL.cdcl import add_arguments
 
-heuristic= "VSIDS_nodecay"
+heuristic = "VSIDS_nodecay"
+
 
 class TestStringMethods(unittest.TestCase):
 
@@ -17,7 +18,7 @@ class TestStringMethods(unittest.TestCase):
 		filename = "../sample_cnf/hoge.cnf"
 		solver = add_arguments(filename,heuristic)
 		start = time.clock()
-		self.assertEqual(solver.solve_test(), 0)
+		self.assertEqual(solver.solve_test(), 'satisfied')
 		end = time.clock()
 		print("Num times pick-branching", solver.get_num_pick_branch())
 		print("Time taken is", end - start)
@@ -28,7 +29,7 @@ class TestStringMethods(unittest.TestCase):
 		filename = "../sample_cnf/input.cnf"
 		solver = add_arguments(filename,heuristic)
 		start = time.clock()
-		self.assertEqual(solver.solve_test(), 0)
+		self.assertEqual(solver.solve_test(), 'satisfied')
 		end = time.clock()
 		print("Num times pick-branching", solver.get_num_pick_branch())
 		print("Time taken is", end - start)
@@ -39,7 +40,7 @@ class TestStringMethods(unittest.TestCase):
 		filename = "../sample_cnf/Generated.cnf"
 		solver = add_arguments(filename,heuristic)
 		start = time.clock()
-		self.assertEqual(solver.solve_test(), 0)
+		self.assertEqual(solver.solve_test(), 'satisfied')
 		end = time.clock()
 		print("Num times pick-branching", solver.get_num_pick_branch())
 		print("Time taken is", end - start)
@@ -50,7 +51,7 @@ class TestStringMethods(unittest.TestCase):
 		filename = "../sample_cnf/unsat_simple.cnf"
 		solver = add_arguments(filename,heuristic)
 		start = time.clock()
-		self.assertEqual(solver.solve_test(), 1)
+		self.assertEqual(solver.solve_test(), 'unsatisfied')
 		end = time.clock()
 		print("Num times pick-branching", solver.get_num_pick_branch())
 		print("Time taken is", end - start)
@@ -61,7 +62,7 @@ class TestStringMethods(unittest.TestCase):
 		filename = "../sample_cnf/unsat_complex_1.cnf"
 		solver = add_arguments(filename,heuristic)
 		start = time.clock()
-		self.assertEqual(solver.solve_test(), 1)
+		self.assertEqual(solver.solve_test(), 'unsatisfied')
 		end = time.clock()
 		print("Num times pick-branching", solver.get_num_pick_branch())
 		print("Time taken is", end - start)
@@ -72,7 +73,7 @@ class TestStringMethods(unittest.TestCase):
 		filename = "../sample_cnf/unsat_complex_2.cnf"
 		solver = add_arguments(filename,heuristic)
 		start = time.clock()
-		self.assertEqual(solver.solve_test(), 1)
+		self.assertEqual(solver.solve_test(), 'unsatisfied')
 		end = time.clock()
 		print("Num times pick-branching", solver.get_num_pick_branch())
 		print("Time taken is", end - start)
