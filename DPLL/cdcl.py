@@ -141,66 +141,86 @@ class SATSolverCDCL:
 
 	def conflict_backtrack(self, conflict_decision_level):
 		"""
-		Analyzes conflict and learns a new clause using UIP
+		Analyzes conflict and learns a new clause using resolution
 		:return: decision level to backtrack to
 		"""
-		learnt_clause = self.clause_list[self.conflict_antecedent]
-		resolver_literal = None
+		conflict_clause = self.clause_list[self.conflict_antecedent]
 
-		while True:
-			this_level_count = 0
-			for l in learnt_clause:
-				literal = abs(l)-1
-				if self.literal_decision_level[literal] == conflict_decision_level:
-					this_level_count += 1
-
-				if self.literal_decision_level[literal] == conflict_decision_level and \
-								self.literal_antecedent[literal] != -1:
-					resolver_literal = literal
-				del l
-
-			if this_level_count == 1:
-				break
-
-			learnt_clause = self.resolution(learnt_clause, resolver_literal)
-
+		learnt_clause, resolver_literal = self.cut_graph_UIP(conflict_clause, conflict_decision_level)
 		self.clause_list.append(learnt_clause)
 
-		if len(learnt_clause) == 2:
-			self.two_clause.append(learnt_clause)
-
-		self.initiate_vsids_decay()
-
-		for lit in learnt_clause:
-			literal_id = abs(lit)-1
-			update = 1 if lit > 0 else -1
-			self.literal_polarity[literal_id] += update
-			if self.literal_frequency[literal_id] != -1:
-				self.literal_frequency[literal_id] += 1
-			self.variable_frequency[literal_id] += 1
-			self.vsids_frequency[lit] += 2
-			del lit, update, literal_id
+		self.update_parameters_pickbranching(learnt_clause)
 
 		self.clause_count += 1
-		backtracked_decision_level = 0
+		backtrack_to_decision_level = 0
 		for lit in learnt_clause:
 			literal_id = abs(lit)-1
-			decision_level_here = self.literal_decision_level[literal_id]
-			if decision_level_here != conflict_decision_level and decision_level_here > backtracked_decision_level:
-				backtracked_decision_level = decision_level_here
+			literal_decision_level = self.literal_decision_level[literal_id]
+			if literal_decision_level != conflict_decision_level and literal_decision_level > backtrack_to_decision_level:
+				backtrack_to_decision_level = literal_decision_level
 			del lit
 
 		for i, lit in enumerate(self.literals):
-			if self.literal_decision_level[i] > backtracked_decision_level:
-				# Un-assigning literal
+			if self.literal_decision_level[i] > backtrack_to_decision_level:
+				# Un-assigning literals till the level we backtrack to
 				self.literals[i] = -1
 				self.literal_decision_level[i] = -1
 				self.literal_antecedent[i] = -1
 				self.literal_frequency[i] = self.variable_frequency[i]
 			del i, lit
 
-		del learnt_clause, conflict_decision_level, resolver_literal, this_level_count
-		return backtracked_decision_level
+		del conflict_clause, learnt_clause, conflict_decision_level, resolver_literal
+		return backtrack_to_decision_level
+
+	def cut_graph_UIP(self, conflict_clause, conflict_decision_level):
+		"""
+		Analyzes implication graph to get cut
+		If there is a UIP, uses UIP as resolver literal
+		and its antecedents to learn new clause
+		:return: learnt clause and resolver literal
+		"""
+		resolver_literal = None
+		while True:
+			num_literal_assigned_at_level = 0
+			for l in conflict_clause:
+				literal = abs(l) - 1
+				current_decision_level = self.literal_decision_level[literal]
+				current_antecedent = self.literal_antecedent[literal]
+
+				# if the literal's decision level is same as that of conflict
+				if self.literal_decision_level[literal] == conflict_decision_level:
+					num_literal_assigned_at_level += 1
+
+				# if there's no UIP, use this as resolver
+				if current_decision_level == conflict_decision_level and current_antecedent != -1:
+					resolver_literal = literal
+
+			if num_literal_assigned_at_level == 1:  # if there is exactly one literal assigned here, this is a UIP
+				break
+
+			conflict_clause = self.resolution(conflict_clause, resolver_literal)
+
+		learnt_clause = conflict_clause
+
+		return learnt_clause, resolver_literal
+
+
+	def update_parameters_pickbranching(self, learnt_clause):
+		"""
+		Updates frequencies for pick-branching heuristics
+		:return: None
+		"""
+		if len(learnt_clause) == 2:
+			self.two_clause.append(learnt_clause)
+		self.initiate_vsids_decay()
+		for lit in learnt_clause:
+			literal_id = abs(lit) - 1
+			update = 1 if lit > 0 else -1
+			self.literal_polarity[literal_id] += update
+			if self.literal_frequency[literal_id] != -1:
+				self.literal_frequency[literal_id] += 1
+			self.variable_frequency[literal_id] += 1
+			self.vsids_frequency[lit] += 2
 
 	def resolution(self, current_clause, resolver_literal):
 		"""
