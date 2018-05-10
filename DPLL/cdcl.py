@@ -7,7 +7,8 @@ import copy
 
 def add_arguments(filename, heuristic):
 	"""
-	Check validity of each clause and add to clause set
+	Check validity of each clause and adds to clause set
+	:return: Solver
 	"""
 	file = open(filename, "r")
 	num_variables = 0
@@ -86,7 +87,12 @@ class SATSolverCDCL:
 		self.clause_count = len(self.cnf)
 
 	def unit_propagate(self, decision_level):
-
+		"""
+		Carries out iterative application of unit clause rule.
+		If unit clauses found, assigns variable.
+		If conflict found, stores the conflict antecedent.
+		:return: Satisfiability status (unresolved or unsat)
+		"""
 		while True:
 			unit_clause_found = False
 			for id,clause in enumerate(self.clause_list):
@@ -97,13 +103,13 @@ class SATSolverCDCL:
 				for lit in clause:
 					if(self.literals[abs(lit)-1]!=-1):
 						assigned += 1
-						if(self.literals[abs(lit)-1]>0 and lit>0) or (self.literals[abs(lit)-1]==0 and lit<0):
+						if(self.literals[abs(lit)-1]>0 and lit>0) or (self.literals[abs(lit)-1]==0 and lit<0): #check if the clause is already satisfied
 							conflict = False
 							unassigned_clause = False
 					if(self.literals[abs(lit)-1]==-1):
 						unit_clause_unassigned_lit = lit
 
-				if(len(clause)==assigned+1 and unassigned_clause == True): #all but one variable is assigned, unit clause found
+				if(len(clause)==assigned+1 and unassigned_clause == True): #all except one variable is assigned and clause is not satisfied yet, unit clause found
 					self.assign_literal(unit_clause_unassigned_lit,decision_level,id)
 					unit_clause_found = True
 					break
@@ -121,6 +127,10 @@ class SATSolverCDCL:
 		return 'unresolved'
 
 	def assign_literal(self, variable, decision_level, antecedent):
+		"""
+		Assigns literal to ensure satisfiability of clause at current decision level
+		:return: None
+		"""
 		literal_id = abs(variable)-1
 		value = 1 if variable > 0 else 0
 		self.literals[literal_id] = value
@@ -130,6 +140,10 @@ class SATSolverCDCL:
 		del literal_id, value
 
 	def conflict_backtrack(self, conflict_decision_level):
+		"""
+		Analyzes conflict and learns a new clause using UIP
+		:return: decision level to backtrack to
+		"""
 		learnt_clause = self.clause_list[self.conflict_antecedent]
 		resolver_literal = None
 
@@ -188,21 +202,17 @@ class SATSolverCDCL:
 		del learnt_clause, conflict_decision_level, resolver_literal, this_level_count
 		return backtracked_decision_level
 
-	def initiate_vsids_decay(self):
-		decay_constant = np.random.uniform()
-		self.vsids_frequency.update((x, y * decay_constant) for x, y in self.vsids_frequency.items())
-
-	def resolution(self, learnt_clause, literal):
+	def resolution(self, current_clause, resolver_literal):
 		"""
-		Resolution of
-		:return:
+		Resolves two clauses on a resolver literal to learn a new clause
+		:return: learnt clause
 		"""
-		conflict_clause = self.clause_list[self.literal_antecedent[literal]]
-		new_clause = learnt_clause + conflict_clause
-		new_clause[:] = filterfalse(lambda x: x == literal + 1 or x == -literal - 1, new_clause)
-		new_clause = list(set(new_clause))
+		conflict_clause = self.clause_list[self.literal_antecedent[resolver_literal]]
+		learnt_clause = current_clause + conflict_clause
+		learnt_clause[:] = filterfalse(lambda x: x == resolver_literal + 1 or x == -resolver_literal - 1, learnt_clause)
+		learnt_clause = list(set(learnt_clause))
 		del conflict_clause
-		return new_clause
+		return learnt_clause
 
 	def pick_branching_choice(self):
 		"""
@@ -219,8 +229,8 @@ class SATSolverCDCL:
 
 	def random_choice(self):
 		"""
-
-		:return:
+		Lists all the unassigned variables and picks randomly
+		:return: randomly picked variable
 		"""
 		unassigned_list = {}
 		for i in range(0, self.literal_count):
@@ -235,8 +245,8 @@ class SATSolverCDCL:
 
 	def random_frequency(self):
 		"""
-
-		:return:
+		Lists all the unassigned variables based on frequency and picks randomly
+		:return: randomly picked variable
 		"""
 		unassigned_list = []
 		for i in range(0, self.literal_count):
@@ -244,31 +254,51 @@ class SATSolverCDCL:
 				for j in range(0, self.literal_frequency[i]):
 					unassigned_list.append(i)
 
-		if unassigned_list:
-			variable = random.choice(unassigned_list)
-			if self.literal_polarity[variable] >= 0:
-				return variable + 1
-			else:
-				return -variable - 1
+		variable = random.choice(unassigned_list)
+		if self.literal_polarity[variable] >= 0:
+			return variable + 1
 		else:
-			return self.first_unassigned_variable()
+			return -variable - 1
 
 	def two_clause_choice(self):
 		"""
-
-		:return:
+		Returns the most frequently appearing literal in two clauses.
+		To avoid picking the same variable repeatedly,
+		if there are no changes in the number of two clauses,
+		random heuristic will be chosen.
+		:return: two-clause variable
 		"""
-		if self.count != 0 and self.two_clause == self.two_clause_previous_state:
+		if self.count != 0 and self.two_clause == self.two_clause_previous_state: #if the number of two clauses haven't changed, select randomly
 			variable = self.random_frequency()
 			return variable
 		else:
-			variable = self.generate_two_clause_variable()
+			variable = self.most_frequent_literal_in_two_clause()
 			return variable
+
+	def most_frequent_literal_in_two_clause(self):
+		"""
+		Two-clause helper method, finds the
+		most frequently appearing literal in two-clauses.
+		Breaks ties randomly.
+		:return: 2-clause literal
+		"""
+		self.two_clause_previous_state = self.two_clause
+		two_clause_lit_frequency = np.zeros(self.literal_count+1)
+		for clause in self.two_clause:
+			for l in clause:
+				two_clause_lit_frequency[abs(l)] += 1
+		max_value = np.amax(two_clause_lit_frequency)
+		indices = [i for i, j in enumerate(two_clause_lit_frequency) if j == max_value]
+		return random.choice(indices)
 
 	def DLIS(self):
 		"""
-
-		:return:
+		Dynamic Largest Individual Sum picks the most
+		frequently appearing literal in unresolved clauses.
+		Due to the nature of deepcopy, if the number of
+		assigned literals is past a certain threshold,
+		VSIDS_nodecay will be used.
+		:return: DLIS variable
 		"""
 		if self.count > self.literal_count/2:
 			return self.VSIDS_nodecay()
@@ -302,8 +332,8 @@ class SATSolverCDCL:
 
 	def VSIDS_nodecay(self):
 		"""
-
-		:return:
+		Picks the most frequently appearing literal.
+		:return: VSIDS non-decayed variable
 		"""
 		unassigned_list = {}
 		for i in range(0, self.literal_count):
@@ -320,8 +350,8 @@ class SATSolverCDCL:
 
 	def VSIDS(self):
 		"""
-
-		:return:
+		Uses VSIDS heuristic to find the literal with max value.
+		:return: VSIDS literal
 		"""
 		unassigned_list = {}
 		for i in range(0, self.literal_count):
@@ -337,28 +367,22 @@ class SATSolverCDCL:
 		else:
 			return self.first_unassigned_variable()
 
+	def initiate_vsids_decay(self):
+		"""
+		Pick decay constant and update frequencies for VSIDS heuristic
+		:return:
+		"""
+		decay_constant = np.random.uniform()
+		self.vsids_frequency.update((x, y * decay_constant) for x, y in self.vsids_frequency.items())
+
 	def first_unassigned_variable(self):
 		"""
-
-		:return:
+		:return: The first unassigned variable,
+		used if a heuristic repeatedly picks the same variable.
 		"""
 		for i in range(0, self.literal_count):
 			if self.literals[i] == -1:
 				return i + 1
-
-	def generate_two_clause_variable(self):
-		"""
-
-		:return:
-		"""
-		self.two_clause_previous_state = self.two_clause
-		two_clause_lit_frequency = np.zeros(self.literal_count+1)
-		for clause in self.two_clause:
-			for l in clause:
-				two_clause_lit_frequency[abs(l)] += 1
-		max_value = np.amax(two_clause_lit_frequency)
-		indices = [i for i, j in enumerate(two_clause_lit_frequency) if j == max_value]
-		return random.choice(indices)
 
 	def check_all_assigned(self):
 		"""
@@ -373,7 +397,7 @@ class SATSolverCDCL:
 	def CDCL(self):
 		"""
 		To perform the CDCL algo
-		:return: result state (int)
+		:return: satisfiability status
 		"""
 		decision_level = 0
 		if self.unsatisfied:
@@ -425,9 +449,12 @@ class SATSolverCDCL:
 	def solve_test(self):
 		"""
 		Returns result status of CDCL solving
-		:return: int
+		:return: sat status
 		"""
 		return self.CDCL()
 
 	def get_num_pick_branch(self):
+		"""
+		:return: number of pick-branching calls
+		"""
 		return self.count
