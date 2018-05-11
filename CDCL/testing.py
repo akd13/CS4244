@@ -80,6 +80,7 @@ class TestStringMethods(unittest.TestCase):
 		print("Num times pick-branching", solver.get_num_pick_branch())
 		print("Time taken is", end - start)
 
+
 	def test_einstein(self):
 		print()
 		print("Testing einstein.cnf")
