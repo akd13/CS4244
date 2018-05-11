@@ -205,7 +205,6 @@ class SATSolverCDCL:
 
 		return learnt_clause, resolver_literal
 
-
 	def update_parameters_pickbranching(self, learnt_clause):
 		"""
 		Updates frequencies for pick-branching heuristics
@@ -426,14 +425,14 @@ class SATSolverCDCL:
 		To perform the CDCL algo
 		:return: satisfiability status
 		"""
-		decision_level = 0
 		if self.unsatisfied:
 			return 'unsatisfied'
+		decision_level = 0
 
-		unit_propagate_result = self.unit_propagate(decision_level)
-		if unit_propagate_result == 'unsatisfied':
+		result = self.unit_propagate(decision_level)
+		if result == 'unsatisfied':
 			del decision_level
-			return unit_propagate_result
+			return result
 
 		while not self.check_all_assigned():
 			picked_variable = self.pick_branching_choice()
@@ -443,16 +442,16 @@ class SATSolverCDCL:
 			self.assign_var(picked_variable, decision_level, -1)
 
 			while True:
-				unit_propagate_result = self.unit_propagate(decision_level)
-				if unit_propagate_result == 'unsatisfied':
+				result = self.unit_propagate(decision_level)
+				if result == 'unsatisfied':
 					if decision_level == 0:
-						return unit_propagate_result
+						return result
 
 					decision_level = self.learn_conflict_backtrack(decision_level)
 				else:
 					break
 			del picked_variable
-		del decision_level, unit_propagate_result
+		del decision_level, result
 		return 'satisfied'
 
 	def solve(self):
