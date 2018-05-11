@@ -151,7 +151,7 @@ int main(void)
 		{
 			for(b = 5; b>=1;b--)
 			{	
-				if((b>=a-1)&&(b<=a))
+				if((b>=a-1)&&(b<=a)) //Out of range - both cannot be beside each other at same time
 				{	}
 				else
 					{printf("-%d -%d 0\n", color(a, white), color(b, green));}

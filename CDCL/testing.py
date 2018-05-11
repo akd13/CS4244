@@ -2,10 +2,14 @@ import unittest
 import time
 from CDCL.cdcl_routine import add_arguments
 
-heuristic = "2-clause"
+heuristic = "DLIS"
 
 
 class TestStringMethods(unittest.TestCase):
+	"""
+	Performs unit testing of all the generated CNF files.
+	:return: True/False
+	"""
 
 	def test_upper(self):
 		self.assertEqual('foo'.upper(), 'FOO')

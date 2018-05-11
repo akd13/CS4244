@@ -2,10 +2,15 @@ import os
 import datetime
 import random
 
+#Number of literals per clause
 num_lits = 3
 
-
 def generate_clause(N, num_lits):
+	"""
+	Picks 3 distinct variables randomly
+	and negates them with probability 0.5.
+	:return: generated clause
+	"""
 	clause = []
 	count = 0
 	while count < num_lits:
@@ -24,9 +29,9 @@ def generate_clause(N, num_lits):
 
 def generate_cnf(N, L):
 	"""
-		Generates CNF formulas and store them in DIMACs format in specified file path
-		Input: N number of variables, L number of clauses to be produced
-		:return: void
+	Generates CNF formulas and store them in DIMACs format in specified file path
+	Input: N number of variables, L number of clauses to be produced
+	:return: void
 	"""
 	# Check and create file directory if file path do not exist
 	directory = "../sample_cnf/"
@@ -49,6 +54,7 @@ def generate_cnf(N, L):
 				file.write(str(lit) + " ")
 			file.write("0\n")
 
-variables = int(input("Enter number of variables: "))
-clauses = int(input("Enter number of clauses: "))
-generate_cnf(variables, clauses)
+if __name__ == '__main__':
+	variables = int(input("Enter number of variables: "))
+	clauses = int(input("Enter number of clauses: "))
+	generate_cnf(variables, clauses)
