@@ -73,5 +73,6 @@ with open(filename, "w") as file:
 			if check_negation(picked_clause):
 				file.write(' '.join(str(elem) for elem in all_clauses[random_int]) + " ")
 				file.write("0\n")
+		count += 1
 		del random_int, picked_clause
 print("Done")
