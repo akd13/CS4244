@@ -2,15 +2,13 @@ import unittest
 import time
 from DPLL.cdcl import add_arguments
 
-heuristic = "random_frequency"
+heuristic = "VSIDS"
 
 
 class TestStringMethods(unittest.TestCase):
 
 	def test_upper(self):
 		self.assertEqual('foo'.upper(), 'FOO')
-
-	# Sat = 0, Unsat = 1
 
 	def test_hoge(self):
 		print()

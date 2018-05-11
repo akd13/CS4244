@@ -3,6 +3,7 @@ from itertools import filterfalse
 import random
 import numpy as np
 import copy
+import heapq
 
 
 def add_arguments(filename, heuristic):
@@ -291,7 +292,9 @@ class SATSolverCDCL:
 		random heuristic will be chosen.
 		:return: two-clause variable
 		"""
-		if self.count != 0 and self.two_clause == self.two_clause_previous_state: #if the number of two clauses haven't changed, select randomly
+
+		# if the number of two clauses haven't changed, select randomly
+		if self.count != 0 and self.two_clause == self.two_clause_previous_state:
 			variable = self.random_frequency()
 			return variable
 		else:
@@ -310,6 +313,7 @@ class SATSolverCDCL:
 		for clause in self.two_clause:
 			for l in clause:
 				two_clause_lit_frequency[abs(l)] += 1
+
 		max_value = np.amax(two_clause_lit_frequency)
 		indices = [i for i, j in enumerate(two_clause_lit_frequency) if j == max_value]
 		return random.choice(indices)
