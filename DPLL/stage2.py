@@ -3,6 +3,7 @@ from itertools import combinations
 import os.path
 import pickle
 import random
+import gc
 
 N = 150
 
@@ -24,8 +25,12 @@ def parse_input():
 
 def check_negation(combi):
 	original_length = len(combi)
-	if original_length != len(list(set(map(abs, combi)))):
+	if original_length != len(set(map(abs, combi))):
+		del original_length, combi
+		gc.collect()
 		return False
+	del original_length, combi
+	gc.collect()
 	return True
 
 filename, clause_file, K, R = parse_input()
@@ -41,11 +46,13 @@ all_clauses = []
 if not os.path.isfile(clause_file):
 	print("Clause File does not Exist")
 	for combination in combinations(literals, K):
-		combination = list(combination)
-		if check_negation(combination):
-			all_clauses.append(list(combination))
+		all_clauses.append(combination)
+		del combination
+		gc.collect()
+	print("Clauses generated in list")
 	with open(clause_file, 'wb') as f:
-		pickle.dump(clause_file)
+		pickle.dump(all_clauses, f)
+	print("All clauses file created")
 else:
 	print("Clause File Exists")
 	with open(clause_file, 'rb') as f:
@@ -58,8 +65,16 @@ print(len(all_clauses))
 with open(filename, "w") as file:
 	file.write("c {0}\n".format(filename))
 	file.write("p cnf N:{0}  K:{1}  R:{2}  Number of Clauses{3}:\n".format(150, K, R, num_clauses_required))
-	random_int_list = random.sample(range(0, total_number_clauses-1), num_clauses_required)
-	for random_int in random_int_list:
-		file.write(' '.join(str(elem) for elem in all_clauses[random_int]) + " ")
-		file.write("0\n")
+	random_set = set()
+	count = 0
+	while count < num_clauses_required:
+		random_int = random.randint(0, total_number_clauses-1)
+		if random_int not in random_set:
+			random_set.add(random_int)
+			picked_clause = all_clauses[random_int]
+			if check_negation(picked_clause):
+				file.write(' '.join(str(elem) for elem in all_clauses[random_int]) + " ")
+				file.write("0\n")
+		count += 1
+		del random_int, picked_clause
 print("Done")
