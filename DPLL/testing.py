@@ -2,7 +2,7 @@ import unittest
 import time
 from DPLL.cdcl import add_arguments
 
-heuristic = "VSIDS"
+heuristic = "2-clause"
 
 
 class TestStringMethods(unittest.TestCase):
