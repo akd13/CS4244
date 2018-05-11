@@ -1,6 +1,9 @@
+from DPLL.stage2_generator import gen_cnf
 from Stage2.stage2_generator import gen_cnf
 import numpy as np
+import gc
 import pycosat
+import pickle
 
 N = 150
 R = np.arange(0.2, 10, 0.2)
@@ -18,6 +21,7 @@ with open(file, 'w') as f:
 			# Generate 50 formulas
 			for i in range(50):
 				cnf = gen_cnf(N, k, r)
+				print("CNF generated")
 				result = pycosat.solve(cnf)
 				num_total += 1
 				if result != 'UNSAT':
