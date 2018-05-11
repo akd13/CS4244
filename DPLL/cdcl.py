@@ -96,33 +96,35 @@ class SATSolverCDCL:
 		"""
 		while True:
 			unit_clause_found = False
-			for id,clause in enumerate(self.clause_list):
+			for id, clause in enumerate(self.clause_list):
 				assigned = 0
 				unit_clause_unassigned_lit = None
 				conflict = True
 				unassigned_clause = True
 				for lit in clause:
-					if(self.literals[abs(lit)-1]!=-1):
+					if self.literals[abs(lit)-1] != -1:
 						assigned += 1
-						if(self.literals[abs(lit)-1]>0 and lit>0) or (self.literals[abs(lit)-1]==0 and lit<0): #check if the clause is already satisfied
+						# check if the clause is already satisfied
+						if self.literals[abs(lit)-1] > 0 and lit > 0 or self.literals[abs(lit)-1] == 0 and lit < 0:
 							conflict = False
 							unassigned_clause = False
-					if(self.literals[abs(lit)-1]==-1):
+					if self.literals[abs(lit)-1] == -1:
 						unit_clause_unassigned_lit = lit
 
-				if(len(clause)==assigned+1 and unassigned_clause == True): #all except one variable is assigned and clause is not satisfied yet, unit clause found
+				# all except one variable is assigned and clause is not satisfied yet, unit clause found
+				if len(clause) == assigned + 1 and unassigned_clause == True:
 					self.assign_var(unit_clause_unassigned_lit, decision_level, id)
 					unit_clause_found = True
 					break
 
-				if(len(clause) == assigned): #all variables assigned, do satisfiability check
-					if(conflict == True):
+				# all variables assigned, do satisfiability check
+				if len(clause) == assigned:
+					if conflict is True:
 						self.conflict_antecedent = id
 						return 'unsatisfied'
 
-			if(unit_clause_found == False):
+			if unit_clause_found is False:
 				break
-
 
 		self.conflict_antecedent = -1
 		return 'unresolved'
