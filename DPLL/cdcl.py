@@ -111,7 +111,7 @@ class SATSolverCDCL:
 						unit_clause_unassigned_lit = lit
 
 				if(len(clause)==assigned+1 and unassigned_clause == True): #all except one variable is assigned and clause is not satisfied yet, unit clause found
-					self.assign_literal(unit_clause_unassigned_lit,decision_level,id)
+					self.assign_var(unit_clause_unassigned_lit, decision_level, id)
 					unit_clause_found = True
 					break
 
@@ -127,7 +127,7 @@ class SATSolverCDCL:
 		self.conflict_antecedent = -1
 		return 'unresolved'
 
-	def assign_literal(self, variable, decision_level, antecedent):
+	def assign_var(self, variable, decision_level, antecedent):
 		"""
 		Assigns literal to ensure satisfiability of clause at current decision level
 		:return: None
@@ -140,7 +140,7 @@ class SATSolverCDCL:
 		self.literal_frequency[literal_id] = -1
 		del literal_id, value
 
-	def conflict_backtrack(self, conflict_decision_level):
+	def learn_conflict_backtrack(self, conflict_decision_level):
 		"""
 		Analyzes conflict and learns a new clause using resolution
 		:return: decision level to backtrack to
@@ -440,7 +440,7 @@ class SATSolverCDCL:
 			self.previous_var = picked_variable
 			self.count += 1
 			decision_level += 1
-			self.assign_literal(picked_variable, decision_level, -1)
+			self.assign_var(picked_variable, decision_level, -1)
 
 			while True:
 				unit_propagate_result = self.unit_propagate(decision_level)
@@ -448,7 +448,7 @@ class SATSolverCDCL:
 					if decision_level == 0:
 						return unit_propagate_result
 
-					decision_level = self.conflict_backtrack(decision_level)
+					decision_level = self.learn_conflict_backtrack(decision_level)
 				else:
 					break
 			del picked_variable
