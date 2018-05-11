@@ -1,9 +1,11 @@
 from DPLL.cdcl import SATSolverCDCL
 from DPLL.stage2_generator import gen_cnf
 import numpy as np
+import gc
+import pycosat
 
 N = 150
-R = np.arange(0, 10.2, 0.2)
+R = np.arange(0.2, 10.2, 0.2)
 K = [3, 4, 5]
 
 for k in K:
@@ -15,10 +17,9 @@ for k in K:
 		# Generate 50 formulas
 		for i in range(50):
 			cnf = gen_cnf(N, k, r)
-			solver = SATSolverCDCL(cnf, N, 'VSIDS')
-			result = solver.solve_test()
+			result = pycosat.solve(cnf)
 			num_total += 1
-			if result == 'satisfied':
+			if result != 'UNSAT':
 				num_sat += 1
 		print("Stats: {0}".format(num_sat/num_total))
 
