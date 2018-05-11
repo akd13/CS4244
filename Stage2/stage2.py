@@ -22,6 +22,10 @@ def parse_input():
 
 
 def generate_clause(num_variables, num_lits):
+	"""
+	Generate clauses with number of variables and K.
+	:return: generated clause
+	"""
 	clause = set()
 	count = 0
 	while count < num_lits:
@@ -38,6 +42,10 @@ def generate_clause(num_variables, num_lits):
 
 
 def check_negation(combi):
+	"""
+	Check if a clause contains a literal with its own negation
+	:return: Boolean
+	"""
 	original_length = len(combi)
 	if original_length != len(set(map(abs, combi))):
 		del original_length, combi
@@ -47,25 +55,27 @@ def check_negation(combi):
 	gc.collect()
 	return True
 
-filename, K, R = parse_input()
-num_clauses_required = N * R
+if __name__ == '__main__':
 
-literals = []
-for i in range(-N, N+1):
-	literals.append(i)
-literals.remove(0)
-print(literals)
+	filename, K, R = parse_input()
+	num_clauses_required = N * R
 
-with open(filename, "w") as file:
-	file.write("c {0}\n".format(filename))
-	file.write("p cnf N:{0}  K:{1}  R:{2}  Number of Clauses{3}:\n".format(150, K, R, num_clauses_required))
-	cnf = set()
-	while len(cnf) < num_clauses_required:
-		new_clause = generate_clause(N, K)
-		if check_negation(new_clause):
-			cnf.add(new_clause)
+	literals = []
+	for i in range(-N, N+1):
+		literals.append(i)
+	literals.remove(0)
+	print(literals)
 
-	for clause in cnf:
-		file.write(' '.join(str(elem) for elem in clause) + " ")
-		file.write("0\n")
-print("Done")
+	with open(filename, "w") as file:
+		file.write("c {0}\n".format(filename))
+		file.write("p cnf N:{0}  K:{1}  R:{2}  Number of Clauses{3}:\n".format(150, K, R, num_clauses_required))
+		cnf = set()
+		while len(cnf) < num_clauses_required:
+			new_clause = generate_clause(N, K)
+			if check_negation(new_clause):
+				cnf.add(new_clause)
+
+		for clause in cnf:
+			file.write(' '.join(str(elem) for elem in clause) + " ")
+			file.write("0\n")
+	print("Done")

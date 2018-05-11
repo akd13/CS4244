@@ -3,7 +3,7 @@ import numpy as np
 import pycosat
 
 N = 150
-R = np.arange(0.2, 10.2, 0.2)
+R = np.arange(0.2, 10, 0.2)
 K = [3, 4, 5]
 
 file = "stats.csv"
