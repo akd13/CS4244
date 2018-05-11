@@ -25,7 +25,7 @@ def parse_input():
 
 def check_negation(combi):
 	original_length = len(combi)
-	if original_length != len(list(set(map(abs, combi)))):
+	if original_length != len(set(map(abs, combi))):
 		del original_length, combi
 		gc.collect()
 		return False
@@ -46,8 +46,10 @@ all_clauses = []
 if not os.path.isfile(clause_file):
 	print("Clause File does not Exist")
 	for combination in combinations(literals, K):
-		all_clauses.append(list(combination))
+		all_clauses.append(combination)
 		del combination
+		gc.collect()
+	print("Clauses generated in list")
 	with open(clause_file, 'wb') as f:
 		pickle.dump(all_clauses, f)
 	print("All clauses file created")
@@ -69,7 +71,7 @@ with open(filename, "w") as file:
 		random_int = random.randint(0, total_number_clauses-1)
 		if random_int not in random_set:
 			random_set.add(random_int)
-			picked_clause = all_clauses(random_int)
+			picked_clause = all_clauses[random_int]
 			if check_negation(picked_clause):
 				file.write(' '.join(str(elem) for elem in all_clauses[random_int]) + " ")
 				file.write("0\n")
